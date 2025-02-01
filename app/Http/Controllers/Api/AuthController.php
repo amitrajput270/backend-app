@@ -22,9 +22,9 @@ class AuthController extends Controller
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'status'  => false,
-                'message' => 'Validation error',
-                'data'    => $validator->errors(),
+                'statusCode' => 'ERR',
+                'message'    => 'Validation error',
+                'data'       => $validator->errors(),
             ], 422);
         }
         $user = User::create([
@@ -34,9 +34,9 @@ class AuthController extends Controller
         ]);
         $token = JWTAuth::fromUser($user);
         return response()->json([
-            'status'  => true,
-            'message' => 'User created successfully',
-            'data'    => [
+            'statusCode' => 'TXN',
+            'message'    => 'User created successfully',
+            'data'       => [
                 'user'  => $user,
                 'token' => $token,
             ],
@@ -49,25 +49,25 @@ class AuthController extends Controller
         try {
             if (! $token = JWTAuth::attempt($credentials)) {
                 return response()->json([
-                    'status'  => false,
-                    'message' => 'Invalid credentials',
-                    'data'    => [],
+                    'statusCode' => 'ERR',
+                    'message'    => 'Invalid credentials',
+                    'data'       => [],
                 ], 401);
             }
             $user = auth()->user();
             return response()->json([
-                'status'  => true,
-                'message' => 'Login successful',
-                'data'    => [
+                'statusCode' => 'TXN',
+                'message'    => 'Login successful',
+                'data'       => [
                     'user'  => $user,
                     'token' => $token,
                 ],
             ]);
         } catch (JWTException $e) {
             return response()->json([
-                'status'  => false,
-                'message' => $e->getMessage(),
-                'data'    => [],
+                'statusCode' => 'ERR',
+                'message'    => $e->getMessage(),
+                'data'       => [],
             ], Response::HTTP_UNAUTHORIZED);
         }
     }
@@ -76,15 +76,15 @@ class AuthController extends Controller
     {
         if (! $user = JWTAuth::parseToken()->authenticate()) {
             return response()->json([
-                'status'  => false,
-                'message' => 'User not found',
-                'data'    => [],
+                'statusCode' => 'ERR',
+                'message'    => 'User not found',
+                'data'       => [],
             ]);
         }
         return response()->json([
-            'status'  => true,
-            'message' => 'User data fetched successfully',
-            'data'    => $user,
+            'statusCode' => 'TXN',
+            'message'    => 'User data fetched successfully',
+            'data'       => $user,
         ]);
     }
 
@@ -92,18 +92,18 @@ class AuthController extends Controller
     {
         JWTAuth::invalidate(JWTAuth::getToken());
         return response()->json([
-            'status'  => true,
-            'message' => 'User logged out successfully',
-            'data'    => [],
+            'statusCode' => 'TXN',
+            'message'    => 'User logged out successfully',
+            'data'       => [],
         ]);
     }
 
     public function refresh()
     {
         return response()->json([
-            'status'  => true,
-            'message' => 'Token refreshed successfully',
-            'data'    => [
+            'statusCode' => 'TXN',
+            'message'    => 'Token refreshed successfully',
+            'data'       => [
                 'token' => JWTAuth::refresh(JWTAuth::getToken()),
             ],
         ]);
@@ -116,9 +116,9 @@ class AuthController extends Controller
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'status'  => false,
-                'message' => 'Validation error',
-                'data'    => $validator->errors(),
+                'statusCode' => 'ERR',
+                'message'    => 'Validation error',
+                'data'       => $validator->errors(),
             ], 422);
         }
         $token = Str::random(60);
@@ -128,9 +128,9 @@ class AuthController extends Controller
         );
         $resetLink = url("api/reset-password?token={$token}&email={$request->email}");
         return response()->json([
-            'status'  => true,
-            'message' => 'Password reset link sent to your email',
-            'data'    => [
+            'statusCode' => 'TXN',
+            'message'    => 'Password reset link sent to your email',
+            'data'       => [
                 'resetLink' => $resetLink,
             ],
         ]);
@@ -147,9 +147,9 @@ class AuthController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'status'  => false,
-                'message' => 'Validation error',
-                'data'    => $validator->errors(),
+                'statusCode' => 'ERR',
+                'message'    => 'Validation error',
+                'data'       => $validator->errors(),
             ], 422);
         }
         $token = DB::table('password_resets')->where([
@@ -159,9 +159,9 @@ class AuthController extends Controller
 
         if (! $token) {
             return response()->json([
-                'status'  => false,
-                'message' => 'Invalid token',
-                'data'    => [
+                'statusCode' => 'ERR',
+                'message'    => 'Invalid token',
+                'data'       => [
                     'token' => ['Invalid token'],
                 ],
             ], 401);
@@ -174,15 +174,15 @@ class AuthController extends Controller
             ]);
             DB::table('password_resets')->where('email', $request->email)->delete();
             return response()->json([
-                'status'  => true,
-                'message' => 'Password reset successful',
-                'data'    => [],
+                'statusCode' => 'TXN',
+                'message'    => 'Password reset successful',
+                'data'       => [],
             ]);
         }
         return response()->json([
-            'status'  => false,
-            'message' => 'User not found',
-            'data'    => [],
+            'statusCode' => 'ERR',
+            'message'    => 'User not found',
+            'data'       => [],
         ], 400);
     }
 

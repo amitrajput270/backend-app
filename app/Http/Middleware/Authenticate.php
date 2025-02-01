@@ -18,11 +18,11 @@ class Authenticate extends Middleware
         }
     }
 
-    // protected function unauthenticated($request, array $guards)
-    // {
-    //     return response()->json([
-    //         'status'  => false,
-    //         'message' => 'Unauthenticated',
-    //     ], 400);
-    // }
+    protected function unauthenticated($request, array $guards)
+    {
+        return response()->json([
+            'statusCode' => 'ERR',
+            'message'    => 'Unauthenticated',
+        ], 400);
+    }
 }
