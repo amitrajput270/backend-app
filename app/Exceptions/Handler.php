@@ -55,20 +55,20 @@ class Handler extends ExceptionHandler
                     'status'  => false,
                     'message' => $e->getMessage(),
                     'data'    => [],
-                ], Response::HTTP_UNAUTHORIZED);
+                ], Response::HTTP_BAD_REQUEST);
             } catch (JWTException $e) {
                 return response()->json([
                     'status'  => false,
                     'message' => $e->getMessage(),
                     'data'    => [],
-                ], Response::HTTP_UNAUTHORIZED);
+                ], Response::HTTP_BAD_REQUEST);
             }
 
             return response()->json([
                 'status'  => false,
                 'message' => $e->getMessage(),
                 'data'    => [],
-            ], 400);
+            ], $e->getStatusCode());
         });
     }
 

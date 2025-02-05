@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use DB;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +18,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'     => 'required|string|min:5|max:255',
-            'email'    => 'required|string|email|max:255|unique:users',
+            'email'    => 'required|email|unique:users',
             'password' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
@@ -52,7 +53,7 @@ class AuthController extends Controller
                     'statusCode' => 'ERR',
                     'message'    => 'Invalid credentials',
                     'data'       => [],
-                ], 401);
+                ], 400);
             }
             $user = auth()->user();
             return response()->json([
@@ -68,7 +69,7 @@ class AuthController extends Controller
                 'statusCode' => 'ERR',
                 'message'    => $e->getMessage(),
                 'data'       => [],
-            ], Response::HTTP_UNAUTHORIZED);
+            ], $e->getStatusCode());
         }
     }
 
@@ -79,7 +80,7 @@ class AuthController extends Controller
                 'statusCode' => 'ERR',
                 'message'    => 'User not found',
                 'data'       => [],
-            ]);
+            ], 400);
         }
         return response()->json([
             'statusCode' => 'TXN',
@@ -100,13 +101,21 @@ class AuthController extends Controller
 
     public function refresh()
     {
-        return response()->json([
-            'statusCode' => 'TXN',
-            'message'    => 'Token refreshed successfully',
-            'data'       => [
-                'token' => JWTAuth::refresh(JWTAuth::getToken()),
-            ],
-        ]);
+        try {
+            return response()->json([
+                'statusCode' => 'TXN',
+                'message'    => 'Token refreshed successfully',
+                'data'       => [
+                    'token' => JWTAuth::refresh(JWTAuth::getToken()),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'statusCode' => 'ERR',
+                'message'    => $e->getMessage(),
+                'data'       => [],
+            ], $e->getStatusCode());
+        }
     }
 
     public function forgotPassword(Request $request)
@@ -121,25 +130,33 @@ class AuthController extends Controller
                 'data'       => $validator->errors(),
             ], 422);
         }
-        $token = Str::random(60);
-        DB::table('password_resets')->updateOrInsert(
-            ['email' => $request->email],
-            ['token' => $token, 'created_at' => now()]
-        );
-        $resetLink = url("api/reset-password?token={$token}&email={$request->email}");
-        return response()->json([
-            'statusCode' => 'TXN',
-            'message'    => 'Password reset link sent to your email',
-            'data'       => [
-                'resetLink' => $resetLink,
-            ],
-        ]);
+        try {
+            $token = Str::random(60);
+            DB::table('password_resets')->updateOrInsert(
+                ['email' => $request->email],
+                ['token' => $token, 'created_at' => now()]
+            );
+            $resetLink = url("api/reset-password?token={$token}&email={$request->email}");
+            return response()->json([
+                'statusCode' => 'TXN',
+                'message'    => 'Password reset link sent to your email',
+                'data'       => [
+                    'resetLink' => $resetLink,
+                ],
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'statusCode' => 'ERR',
+                'message'    => $e->getMessage(),
+                'data'       => [],
+            ], $e->getStatusCode());
+        }
     }
 
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'token'           => 'required',
+            'token'           => 'required|string',
             'email'           => 'required|email|exists:users,email',
             'password'        => 'required|min:8',
             'confirmPassword' => 'required|same:password',
@@ -164,15 +181,18 @@ class AuthController extends Controller
                 'data'       => [
                     'token' => ['Invalid token'],
                 ],
-            ], 401);
+            ], 400);
         }
 
-        $user = DB::table('users')->where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
         if ($user) {
-            DB::table('users')->where('email', $request->email)->update([
+            $user->update([
                 'password' => Hash::make($request->password),
             ]);
-            DB::table('password_resets')->where('email', $request->email)->delete();
+            DB::table('password_resets')->where([
+                'token' => $request->token,
+                'email' => $request->email,
+            ])->delete();
             return response()->json([
                 'statusCode' => 'TXN',
                 'message'    => 'Password reset successful',
