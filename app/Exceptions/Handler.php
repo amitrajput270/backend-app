@@ -6,7 +6,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class Handler extends ExceptionHandler
 {
@@ -42,21 +41,16 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (\Exception $e) {
-            try {
-                JWTAuth::parseToken()->authenticate();
-            } catch (TokenExpiredException $e) {
+
+            if ($e instanceof TokenExpiredException) {
                 return response()->json([
                     'status'  => false,
                     'message' => $e->getMessage(),
                     'data'    => [],
                 ], Response::HTTP_UNAUTHORIZED);
-            } catch (TokenInvalidException $e) {
-                return response()->json([
-                    'status'  => false,
-                    'message' => $e->getMessage(),
-                    'data'    => [],
-                ], Response::HTTP_BAD_REQUEST);
-            } catch (JWTException $e) {
+            }
+
+            if ($e instanceof TokenInvalidException) {
                 return response()->json([
                     'status'  => false,
                     'message' => $e->getMessage(),
@@ -64,12 +58,41 @@ class Handler extends ExceptionHandler
                 ], Response::HTTP_BAD_REQUEST);
             }
 
+            if ($e instanceof JWTException) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $e->getMessage(),
+                    'data'    => [],
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // try {
+            //     \Tymon\JWTAuth\Facades\JWTAuth::parseToken()->authenticate();
+            // } catch (TokenExpiredException $e) {
+            //     return response()->json([
+            //         'status'  => false,
+            //         'message' => $e->getMessage(),
+            //         'data'    => [],
+            //     ], Response::HTTP_UNAUTHORIZED);
+            // } catch (TokenInvalidException $e) {
+            //     return response()->json([
+            //         'status'  => false,
+            //         'message' => $e->getMessage(),
+            //         'data'    => [],
+            //     ], Response::HTTP_BAD_REQUEST);
+            // } catch (JWTException $e) {
+            //     return response()->json([
+            //         'status'  => false,
+            //         'message' => $e->getMessage(),
+            //         'data'    => [],
+            //     ], Response::HTTP_BAD_REQUEST);
+            // }
+
             return response()->json([
                 'status'  => false,
                 'message' => $e->getMessage(),
-                'data'    => [],
-            ], $e->getStatusCode());
+                'data'    => $e->getTraceAsString(),
+            ], 500);
         });
     }
-
 }

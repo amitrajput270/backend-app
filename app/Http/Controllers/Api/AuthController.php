@@ -18,7 +18,8 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'     => 'required|string|min:5|max:255',
-            'email'    => 'required|email|unique:users',
+            // 'email'    => 'required|email:rfc,dns|unique:users',
+            'email'    => 'required|email:rfc,dns|not_regex:/@(?:tempmail|10minutemail|mailinator)\./i',
             'password' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
