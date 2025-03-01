@@ -12,4 +12,12 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/user', [App\Http\Controllers\Api\AuthController::class, 'profile']);
     Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout']);
     Route::post('/refresh', [App\Http\Controllers\Api\AuthController::class, 'refresh']);
+
+    // Task routes
+    Route::get('/tasks', [App\Http\Controllers\Api\TaskController::class, 'index']);
+    Route::get('/tasks/{id}', [App\Http\Controllers\Api\TaskController::class, 'show']);
+    Route::post('/tasks', [App\Http\Controllers\Api\TaskController::class, 'store']);
+    Route::put('/tasks/{id}', [App\Http\Controllers\Api\TaskController::class, 'update']);
+    Route::delete('/tasks/{id}', [App\Http\Controllers\Api\TaskController::class, 'destroy']);
+    Route::get('userTasks', [App\Http\Controllers\Api\TaskController::class, 'userTasks']);
 });
