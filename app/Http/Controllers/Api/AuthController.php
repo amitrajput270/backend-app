@@ -28,7 +28,6 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name'     => 'required|string|min:5|max:255',
             'email'    => 'required|email:rfc,dns|unique:users',
-            // 'email'    => 'required|email:rfc,dns|not_regex:/@(?:tempmail|10minutemail|mailinator)\.',
             'password' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
@@ -205,11 +204,5 @@ class AuthController extends Controller
             'message'    => 'Password reset successful',
             'data'       => [],
         ]);
-        return response()->json([
-            'statusCode' => 'ERR',
-            'message'    => 'User not found',
-            'data'       => [],
-        ], 400);
     }
-
 }
