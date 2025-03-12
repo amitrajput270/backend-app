@@ -3,17 +3,10 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('users');
 });
 
-Route::get('test', function () {
-    $my_list = [
-        ['ID' => 1, 'post_title' => 'Hello World'],
-        ['ID' => 2, 'post_title' => 'Sample Page'],
-    ];
+Route::get('test', \App\Http\Livewire\Counter::class);
 
-    $pages = array_column($my_list, 'post_title');
-
-    dd($pages);
-
-});
+// search user
+Route::get('search-user', \App\Http\Livewire\SearchUser::class);
