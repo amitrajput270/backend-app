@@ -8,5 +8,4 @@ Route::get('/', function () {
 
 Route::get('test', \App\Http\Livewire\Counter::class);
 
-// search user
-Route::get('search-user', \App\Http\Livewire\SearchUser::class);
+Route::any('search-user', \App\Http\Livewire\SearchUser::class)->name('search-user');

@@ -9,13 +9,18 @@ use Livewire\WithPagination;
 class SearchUser extends Component
 {
     use WithPagination;
-    public $search = '';
-    protected $faker;
 
-    public function __construct()
-    {
-        $this->faker = Faker::create();
-    }
+    public $search        = '';
+    public $selectAll     = false;
+    protected $listeners  = ['deleteSelected'];
+    public $editingUserId = null;
+    public $editingName   = '';
+    public $editingEmail  = '';
+
+    protected $rules = [
+        'editingName'  => 'required|string|max:255|min:3',
+        'editingEmail' => 'required|email',
+    ];
 
     public function updatingSearch()
     {
@@ -25,16 +30,23 @@ class SearchUser extends Component
     public function createUser()
     {
         $userCount = User::count();
-        if ($userCount < 100) {
-            $val = 100 - $userCount;
-            for ($i = 0; $i < $val; $i++) {
-                User::create([
-                    'name'     => $this->faker->name,
-                    'email'    => $this->faker->unique()->safeEmail,
-                    'password' => bcrypt($this->faker->password),
-                ]);
+        $remaining = 100 - $userCount;
+
+        if ($remaining > 0) {
+            $faker = Faker::create();
+            $users = [];
+
+            for ($i = 0; $i < $remaining; $i++) {
+                $users[] = [
+                    'name'       => $faker->name,
+                    'email'      => $faker->unique()->safeEmail,
+                    'password'   => bcrypt('password'),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
-            session()->flash('message', 'User created successfully with ' . $val . ' count.');
+            User::insert($users);
+            session()->flash('message', "$remaining users created successfully.");
         } else {
             session()->flash('message', 'User count is already 100.');
         }
@@ -42,13 +54,26 @@ class SearchUser extends Component
 
     public function editUser($id)
     {
-        $user = User::find($id);
-        $user->update([
-            'name'     => $this->faker->name,
-            'email'    => $this->faker->unique()->safeEmail,
-            'password' => bcrypt($this->faker->password),
-        ]);
-        session()->flash('message', 'User updated successfully.');
+        $user                = User::findOrFail($id);
+        $this->editingUserId = $user->id;
+        $this->editingName   = $user->name;
+        $this->editingEmail  = $user->email;
+    }
+
+    public function updateUser()
+    {
+        $this->validate();
+
+        if ($this->editingUserId) {
+            $user = User::findOrFail($this->editingUserId);
+            $user->update([
+                'name'  => $this->editingName,
+                'email' => $this->editingEmail,
+            ]);
+
+            $this->reset(['editingUserId', 'editingName', 'editingEmail']);
+            session()->flash('message', 'User updated successfully.');
+        }
     }
 
     public function deleteUser($id)
@@ -56,22 +81,31 @@ class SearchUser extends Component
         if ($user = User::find($id)) {
             $user->delete();
             session()->flash('message', 'User deleted successfully.');
-            return;
+        } else {
+            session()->flash('message', 'User not found.');
         }
-        session()->flash('message', 'User not found.');
+    }
+
+    public function deleteSelected($userIds = null)
+    {
+        $userIds = json_decode($userIds, true);
+
+        if (! empty($userIds)) {
+            User::whereIn('id', $userIds)->delete();
+            session()->flash('message', count($userIds) . ' users deleted successfully.');
+            $this->selectAll = false;
+            $this->resetPage();
+        }
     }
 
     public function render()
     {
-        $users = User::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($this->search) . '%'],
-            'OR', 'LOWER(email) LIKE ?', ['%' . strtolower($this->search) . '%']
-        )->paginate(10);
+        $searchTerm = strtolower($this->search);
 
-        if ($users->isNotEmpty() && $this->search != '') {
-            session()->flash('message', 'User found successfully with search term: ' . $this->search);
-        } elseif ($this->search != '') {
-            session()->flash('message', 'User not found with search term: ' . $this->search);
-        }
+        $users = User::where('name', 'like', "%{$searchTerm}%")
+            ->orWhere('email', 'like', "%{$searchTerm}%")
+            ->orderBy('id', 'desc')
+            ->paginate(10);
 
         return view('livewire.search-user', compact('users'));
     }
