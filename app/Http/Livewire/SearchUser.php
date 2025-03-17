@@ -12,7 +12,7 @@ class SearchUser extends Component
 
     public $search        = '';
     public $selectAll     = false;
-    protected $listeners  = ['deleteSelected'];
+    protected $listeners  = ['deleteSelected', 'deleteUser'];
     public $editingUserId = null;
     public $editingName   = '';
     public $editingEmail  = '';

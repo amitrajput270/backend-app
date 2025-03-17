@@ -52,7 +52,7 @@
                         <button wire:click="$set('editingUserId', null)" class="btn btn-secondary btn-sm">Cancel</button>
                     @else
                         <button wire:click="editUser({{ $user->id }})" class="btn btn-primary btn-sm">Edit</button>
-                        <button wire:click="deleteUser({{ $user->id }})" class="btn btn-danger btn-sm">Delete</button>
+                        <button onclick="confirmDelete({{ $user->id }})" class="btn btn-danger btn-sm">Delete</button>
                     @endif
                     </td>
                 </tr>
@@ -99,4 +99,10 @@
             }
         });
     });
+
+    function confirmDelete(userId) {
+        if (confirm("Are you sure you want to delete this user?")) {
+            Livewire.emit('deleteUser', userId);
+        }
+    }
 </script>
