@@ -1,3 +1,4 @@
+<div>
 <div class="container mt-4">
     <h4 class="mb-3 user-list">Users List</h4>
 
@@ -26,7 +27,7 @@
         </thead>
         <tbody>
             @forelse ($users as $index => $user)
-                <tr>
+                <tr  wire:key="user-{{ $user->id }}">
                     <td><input type="checkbox" class="userCheckbox" value="{{ $user->id }}"></td>
                     <td>{{ $loop->iteration }}</td>
                     <td>
@@ -49,7 +50,7 @@
                     <td>
                     @if ($editingUserId === $user->id)
                         <button wire:click="updateUser" class="btn btn-success btn-sm">Save</button>
-                        <button wire:click="$set('editingUserId', null)" class="btn btn-secondary btn-sm">Cancel</button>
+                        <button onclick="Livewire.emit('cancelEdit')" class="btn btn-secondary btn-sm">Cancel</button>
                     @else
                         <button wire:click="editUser({{ $user->id }})" class="btn btn-primary btn-sm">Edit</button>
                         <button onclick="confirmDelete({{ $user->id }})" class="btn btn-danger btn-sm">Delete</button>
@@ -66,6 +67,7 @@
 
     {{ $users->links('vendor.livewire.bootstrap') }}
 
+</div>
 </div>
 
 <script>

@@ -12,7 +12,7 @@ class SearchUser extends Component
 
     public $search        = '';
     public $selectAll     = false;
-    protected $listeners  = ['deleteSelected', 'deleteUser'];
+    protected $listeners  = ['deleteSelected', 'deleteUser', 'cancelEdit'];
     public $editingUserId = null;
     public $editingName   = '';
     public $editingEmail  = '';
@@ -21,6 +21,11 @@ class SearchUser extends Component
         'editingName'  => 'required|string|max:255|min:3',
         'editingEmail' => 'required|email',
     ];
+
+    public function cancelEdit()
+    {
+        $this->editingUserId = null;
+    }
 
     public function updatingSearch()
     {
