@@ -21,3 +21,6 @@ Route::middleware(['auth:api'])->group(function () {
     Route::delete('/tasks/{id}', [App\Http\Controllers\Api\TaskController::class, 'destroy']);
     Route::get('userTasks', [App\Http\Controllers\Api\TaskController::class, 'userTasks']);
 });
+
+Route::resource('cron-jobs', \App\Http\Controllers\CronJobController::class);
+Route::any('create-users', [App\Http\Controllers\CronJobController::class, 'createUsers']);
