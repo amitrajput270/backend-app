@@ -22,5 +22,34 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('userTasks', [App\Http\Controllers\Api\TaskController::class, 'userTasks']);
 });
 
+
+Route::any('custom-webhook-gitguardian', function () {
+    $payload = file_get_contents('php://input');
+    $signature = hash_hmac('sha256', $payload, env('GITGUARDIAN_WEBHOOK_SECRET'));
+    $headers = getallheaders();
+    if (isset($headers['X-GitGuardian-Signature']) && hash_equals($signature, $headers['X-GitGuardian-Signature'])) {
+        // Process the webhook payload
+        echo "Webhook received and verified.";
+    } else {
+        http_response_code(403);
+        echo "Invalid signature.";
+    }
+});
+
+
+
 Route::resource('cron-jobs', \App\Http\Controllers\CronJobController::class);
 Route::any('create-users', [App\Http\Controllers\CronJobController::class, 'createUsers']);
+
+Route::any('test', function () {
+    $x = 5;
+    echo $x;
+    echo "<br />";
+    echo $x++ + $x++;
+    echo "<br />";
+    echo $x;
+    echo "<br />";
+    echo $x-- - $x--;
+    echo "<br />";
+    echo $x;
+});
