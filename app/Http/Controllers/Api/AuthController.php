@@ -205,4 +205,72 @@ class AuthController extends Controller
             'data'       => [],
         ]);
     }
+
+    public function interviewQuestion()
+    {
+        $input  = [5, 1, 6, 2, 2, 3, 4, 4, 5];
+        $unique = [];
+        //remove duplicates
+        for ($i = 0; $i < count($input); $i++) {
+            $isDuplicate = false;
+            for ($j = 0; $j < count($unique); $j++) {
+                if ($input[$i] == $unique[$j]) {
+                    $isDuplicate = true;
+                    break;
+                }
+            }
+            if (! $isDuplicate) {
+                $unique[] = $input[$i];
+            }
+        }
+
+        $num    = count($unique);
+        $uarray = [];
+        for ($i = 0; $i < $num - 1; $i++) {
+            for ($j = 0; $j < $num - $i - 1; $j++) {
+                if ($unique[$j] > $unique[$j + 1]) {
+                    $temp           = $unique[$j];
+                    $unique[$j]     = $unique[$j + 1];
+                    $unique[$j + 1] = $temp;
+                }
+            }
+        }
+
+        $max = 0;
+
+        for ($i = 0; $i < count($unique) - 1; $i++) {
+            for ($j = $i + 1; $j < count($unique); $j++) {
+                if ($unique[$i] < $unique[$j]) {
+                    // Swap values
+                    $temp       = $unique[$i];
+                    $unique[$i] = $unique[$j];
+                    $unique[$j] = $temp;
+                }
+            }
+        }
+
+        foreach ($unique as $key => $value) {
+            if ($unique[$key] > $max) {
+                $max = $value;
+            }
+        }
+
+        $min = $max;
+        for ($i = 0; $i < $num; $i++) {
+            if ($unique[$i] < $min) {
+                $min = $unique[$i];
+            }
+        }
+
+        return response()->json([
+            'statusCode' => 'TXN',
+            'message'    => 'Unique values fetched successfully',
+            'data'       => [
+                'unique' => $unique,
+                'max'    => $max,
+                'min'    => $min,
+            ],
+        ]);
+
+    }
 }
