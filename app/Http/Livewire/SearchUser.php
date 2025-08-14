@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Livewire;
 
 use App\Models\User;
@@ -45,7 +46,7 @@ class SearchUser extends Component
                 $users[] = [
                     'name'       => $faker->name,
                     'email'      => $faker->unique()->safeEmail,
-                    'password'   => bcrypt('password'),
+                    'password'   => \Hash::make('12345678'),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];

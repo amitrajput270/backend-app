@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\RssFeedController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -10,35 +11,7 @@ Route::get('/', function () {
 
 Route::get('test', \App\Http\Livewire\Counter::class);
 Route::any('search-user', \App\Http\Livewire\SearchUser::class)->name('search-user');
-
-Route::get('demo', function (Request $request) {
-
-    $a             = [2, 4, 67, 5, 4, 9, 10, 12, 8, 7, 4];
-    $firstLargest  = 0;
-    $secondLargest = 0;
-    $thirdLargest  = 0;
-
-    foreach ($a as $key => $value) {
-        if ($value > $firstLargest) {
-            $thirdLargest  = $secondLargest;
-            $secondLargest = $firstLargest;
-            $firstLargest  = $value;
-        } elseif ($value > $secondLargest) {
-            $thirdLargest  = $secondLargest;
-            $secondLargest = $value;
-        } elseif ($value > $thirdLargest) {
-            $thirdLargest = $value;
-        }
-    }
-
-    return response()->json([
-        'firstLargest'  => $firstLargest,
-        'secondLargest' => $secondLargest,
-        'thirdLargest'  => $thirdLargest,
-    ]);
-});
-
-Route::get('test', function () {
+Route::get('payment-receive', function () {
     $paymentReceipt = DB::table('payment_receipts as pr')
         ->select('pr.id', 'pr.reference_no', 'pr.date', 'pr.student_id')
         ->whereNotNull('reference_no')
@@ -69,3 +42,18 @@ Route::get('test', function () {
 
     dd($paymentReceipt->toJson());
 });
+
+Route::get('demo', function (Request $request) {
+    echo "Hello, this is a demo route!";
+});
+
+Route::get('rss', [RssFeedController::class, 'index']);
+
+
+// Route::get('rssw', function () {
+//     $rss = simplexml_load_file('https://www.upwork.com/nx/search/jobs/?amount=0-99,100-499,500-999&client_hires=1-9,10-&contractor_tier=2,3&hourly_rate=5-20&payment_verified=1&proposals=0-4,5-9&q=laravel%20developer&t=0,1');
+//     foreach ($rss->channel->item as $item) {
+//         echo $item->title . '<br>';
+//     }
+//     return response()->json($rss->channel->item);
+// });

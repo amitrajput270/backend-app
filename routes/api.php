@@ -36,20 +36,15 @@ Route::any('custom-webhook-gitguardian', function () {
     }
 });
 
+Route::get('hash-password', function () {
+    $password = 'peb@123';
+    $hashedPassword = Hash::make($password);
+    return response()->json(['hashed_password' => $hashedPassword]);
+});
+
 
 
 Route::resource('cron-jobs', \App\Http\Controllers\CronJobController::class);
 Route::any('create-users', [App\Http\Controllers\CronJobController::class, 'createUsers']);
 
-Route::any('test', function () {
-    $x = 5;
-    echo $x;
-    echo "<br />";
-    echo $x++ + $x++;
-    echo "<br />";
-    echo $x;
-    echo "<br />";
-    echo $x-- - $x--;
-    echo "<br />";
-    echo $x;
-});
+Route::any('test', function () {});
