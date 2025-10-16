@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Livewire;
 
 use Livewire\Component;
@@ -6,6 +7,13 @@ use Livewire\Component;
 class Counter extends Component
 {
     public $count = 0;
+
+
+
+    public function test()
+    {
+        echo "test";
+    }
 
     public function increment()
     {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FinancialMigrationController;
 use App\Http\Controllers\RssFeedController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -9,7 +10,7 @@ Route::get('/', function () {
     return view('users');
 });
 
-Route::get('test', \App\Http\Livewire\Counter::class);
+Route::get('test', \App\Http\Livewire\Counter::class, 'test');
 Route::any('search-user', \App\Http\Livewire\SearchUser::class)->name('search-user');
 Route::get('payment-receive', function () {
     $paymentReceipt = DB::table('payment_receipts as pr')
@@ -43,17 +44,11 @@ Route::get('payment-receive', function () {
     dd($paymentReceipt->toJson());
 });
 
-Route::get('demo', function (Request $request) {
-    echo "Hello, this is a demo route!";
-});
-
 Route::get('rss', [RssFeedController::class, 'index']);
 
+Route::get('trait-test', [RssFeedController::class, 'traitTest']);
 
-// Route::get('rssw', function () {
-//     $rss = simplexml_load_file('https://www.upwork.com/nx/search/jobs/?amount=0-99,100-499,500-999&client_hires=1-9,10-&contractor_tier=2,3&hourly_rate=5-20&payment_verified=1&proposals=0-4,5-9&q=laravel%20developer&t=0,1');
-//     foreach ($rss->channel->item as $item) {
-//         echo $item->title . '<br>';
-//     }
-//     return response()->json($rss->channel->item);
-// });
+
+
+
+Route::any('migrate-financial-data', [FinancialMigrationController::class, 'migrateDueData']);

@@ -5,14 +5,21 @@ namespace App\Http\Controllers;
 use Feeds;
 use Illuminate\Support\Facades\Log;
 
+use App\Traits\TestTraits;
+
+
 class RssFeedController extends Controller
 {
+    use TestTraits;
+
     public function index()
     {
         try {
-            // Example RSS feed URL
-            $feed = Feeds::make('https://www.linkedin.com/jobs', true); // true = force cache refresh
 
+            $url = "https://www.shine.com/job-search/laravel-codeigniter-jobs-in-moradabad-noida-ghaziabad-haridwar-delhi-dehradun-agra-aligarh-bareilly-3?q=laravel-codeigniter&qActual=Laravel%20Codeigniter,%20&loc=Moradabad,%20Noida,%20Ghaziabad,%20Haridwar,%20Delhi,%20Dehradun,%20Agra,%20Aligarh,%20Bareilly&minexp=9";
+            // Example RSS feed URL
+            $feed = Feeds::make($url, true); // true = force cache refresh
+            dd($feed);
             // Check if feed is valid
             if (!$feed) {
                 throw new \Exception('Failed to parse RSS feed');
@@ -66,5 +73,12 @@ class RssFeedController extends Controller
                 'itemCount' => 0,
             ]);
         }
+    }
+
+
+    public function traitTest()
+    {
+
+        return $this->sayHello();
     }
 }

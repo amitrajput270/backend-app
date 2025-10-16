@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\CommandSchedule;
@@ -33,7 +34,8 @@ class CronJobController extends Controller
             'type'            => 'required|in:LARAVEL_COMMAND,SHELL_COMMAND',
             'name'            => 'required|string|max:255',
             'command'         => 'required|string',
-            'schedule'        => ['required',
+            'schedule'        => [
+                'required',
                 function ($attribute, $value, $fail) {
                     if (! CronExpression::isValidExpression($value)) {
                         $fail('The ' . $attribute . ' is not a valid cron expression.');
@@ -95,6 +97,7 @@ class CronJobController extends Controller
         $userCount   = User::count();
         $remaining   = 100 - $userCount;
 
+
         if ($isUserCount) {
             return response()->json([
                 'success' => true,
@@ -118,18 +121,19 @@ class CronJobController extends Controller
                     'updated_at' => now(),
                 ];
             }
-            User::insert($users);
+
+            $isInserted =  User::insert($users);
+
             return response()->json([
                 'success' => true,
                 'message' => "$remaining users created successfully.",
             ]);
-
         }
+
+
         return response()->json([
             'success' => true,
             'message' => 'User count is already ' . $userCount,
         ], 200);
-
     }
-
 }
