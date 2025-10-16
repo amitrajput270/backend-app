@@ -46,14 +46,14 @@
                         {{ $user->email }}
                         @endif
                     </td>
-                    <td>{{ $user->created_at->format('Y-m-d H:i:s') }}</td>
+                    <td>{{ $user->created_at->format('M j, Y g:i a') }}</td>
                     <td>
                         @if ($editingUserId === $user->id)
                         <button wire:click="updateUser" class="btn btn-success btn-sm">Save</button>
                         <button onclick="Livewire.emit('cancelEdit')" class="btn btn-secondary btn-sm">Cancel</button>
                         @else
                         <button wire:click="editUser({{ $user->id }})" class="btn btn-primary btn-sm">Edit</button>
-                        <button onclick="confirmDelete({{ $user->id }})" class="btn btn-danger btn-sm">Delete</button>
+                        <button onclick="confirmDelete(this.dataset.userId)" data-user-id="{{ $user->id }}" class="btn btn-danger btn-sm">Delete</button>
                         @endif
                     </td>
                 </tr>
