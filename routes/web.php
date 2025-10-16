@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\FinancialMigrationController;
+use App\Http\Controllers\RssFeedController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -8,37 +10,9 @@ Route::get('/', function () {
     return view('users');
 });
 
-Route::get('test', \App\Http\Livewire\Counter::class);
+Route::get('test', \App\Http\Livewire\Counter::class, 'test');
 Route::any('search-user', \App\Http\Livewire\SearchUser::class)->name('search-user');
-
-Route::get('demo', function (Request $request) {
-
-    $a             = [2, 4, 67, 5, 4, 9, 10, 12, 8, 7, 4];
-    $firstLargest  = 0;
-    $secondLargest = 0;
-    $thirdLargest  = 0;
-
-    foreach ($a as $key => $value) {
-        if ($value > $firstLargest) {
-            $thirdLargest  = $secondLargest;
-            $secondLargest = $firstLargest;
-            $firstLargest  = $value;
-        } elseif ($value > $secondLargest) {
-            $thirdLargest  = $secondLargest;
-            $secondLargest = $value;
-        } elseif ($value > $thirdLargest) {
-            $thirdLargest = $value;
-        }
-    }
-
-    return response()->json([
-        'firstLargest'  => $firstLargest,
-        'secondLargest' => $secondLargest,
-        'thirdLargest'  => $thirdLargest,
-    ]);
-});
-
-Route::get('test', function () {
+Route::get('payment-receive', function () {
     $paymentReceipt = DB::table('payment_receipts as pr')
         ->select('pr.id', 'pr.reference_no', 'pr.date', 'pr.student_id')
         ->whereNotNull('reference_no')
@@ -69,3 +43,12 @@ Route::get('test', function () {
 
     dd($paymentReceipt->toJson());
 });
+
+Route::get('rss', [RssFeedController::class, 'index']);
+
+Route::get('trait-test', [RssFeedController::class, 'traitTest']);
+
+
+
+
+Route::any('migrate-financial-data', [FinancialMigrationController::class, 'migrateDueData']);

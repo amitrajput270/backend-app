@@ -14,9 +14,11 @@
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
+        "league/csv": "^9.26",
         "livewire/livewire": "^2.12",
         "twbs/bootstrap": "4.1.3",
-        "tymon/jwt-auth": "^1.0"
+        "tymon/jwt-auth": "^1.0",
+        "willvincent/feeds": "^2.7"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
