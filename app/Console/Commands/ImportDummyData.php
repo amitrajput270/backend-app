@@ -37,21 +37,22 @@ class ImportDummyData extends Command
 
         $chunk = [];
         $imported = 0;
+        $headers = $csv->getHeader();
 
-        foreach ($csv->getRecords() as $record) {
-            $chunk[] = [
-                'name' => $record['name'],
-                'email' => $record['email'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
 
+        foreach ($csv->getRecords() as $key =>  $record) {
+            $formattedRecord = [];
+            foreach ($headers as $header) {
+                $snakeHeader = strtolower(str_replace([' ', '/'], '_', trim($header)));
+                $snakeHeader = rtrim($snakeHeader, '.');
+                $formattedRecord[$snakeHeader] = $record[$header];
+            }
+            $chunk[] = $formattedRecord;
             if (count($chunk) >= $chunkSize) {
                 $this->insertChunk($chunk);
                 $imported += count($chunk);
                 $chunk = [];
             }
-
             $progressBar->advance();
         }
 
@@ -70,7 +71,7 @@ class ImportDummyData extends Command
     private function insertChunk(array $chunk)
     {
         try {
-            DB::table('dummy_users')->insert($chunk);
+            DB::table('fees_data')->insert($chunk);
         } catch (\Exception $e) {
             $this->error("Error inserting chunk: " . $e->getMessage());
         }

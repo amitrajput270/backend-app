@@ -11,6 +11,7 @@ Route::get('/', function () {
 });
 
 Route::get('test', \App\Http\Livewire\Counter::class, 'test');
+Route::any('migrate-financial-data', [FinancialMigrationController::class, 'migrateDueData']);
 Route::any('search-user', \App\Http\Livewire\SearchUser::class)->name('search-user');
 Route::get('payment-receive', function () {
     $paymentReceipt = DB::table('payment_receipts as pr')
@@ -45,10 +46,13 @@ Route::get('payment-receive', function () {
 });
 
 Route::get('rss', [RssFeedController::class, 'index']);
-
 Route::get('trait-test', [RssFeedController::class, 'traitTest']);
 
 
+Route::get('demo', function (Request $request) {
+    $name = $request->query('name', 'Guest');
+    return "Hello, $name! Welcome to the demo page.";
+});
 
 
-Route::any('migrate-financial-data', [FinancialMigrationController::class, 'migrateDueData']);
+Route::any('import-large-file', [\App\Http\Controllers\ManageLargeData::class, 'uploadLargeFile']);

@@ -28,4 +28,25 @@ class FinancialMigrationController extends Controller
             ], 500);
         }
     }
+
+    public function importLargeFile()
+    {
+
+        try {
+            ini_set('memory_limit', '2048M');
+            set_time_limit(0);
+
+            if (request()->method() == 'GET') {
+                return view('import-large-file');
+            }
+
+            // $path = request()->file('dataFile')->store('uploads');
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Import failed: ' . $e->getMessage(),
+                'error_details' => $e->getFile() . ':' . $e->getLine()
+            ], 500);
+        }
+    }
 }

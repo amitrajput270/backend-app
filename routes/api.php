@@ -47,4 +47,4 @@ Route::get('hash-password', function () {
 Route::resource('cron-jobs', \App\Http\Controllers\CronJobController::class);
 Route::any('create-users', [App\Http\Controllers\CronJobController::class, 'createUsers']);
 
-Route::any('test', function () {});
+Route::any('upload-file', [\App\Http\Controllers\ManageLargeData::class, 'uploadLargeFile']);
