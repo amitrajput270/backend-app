@@ -7,6 +7,8 @@ Route::post('/register', [App\Http\Controllers\Api\AuthController::class, 'regis
 Route::post('/login', [App\Http\Controllers\Api\AuthController::class, 'login']);
 Route::post('/forget-password', [App\Http\Controllers\Api\AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [App\Http\Controllers\Api\AuthController::class, 'resetPassword']);
+Route::any('upload-file', [\App\Http\Controllers\ManageLargeData::class, 'uploadLargeFile']);
+
 
 Route::middleware(['auth:api'])->group(function () {
     Route::get('/user', [App\Http\Controllers\Api\AuthController::class, 'profile']);
@@ -47,4 +49,7 @@ Route::get('hash-password', function () {
 Route::resource('cron-jobs', \App\Http\Controllers\CronJobController::class);
 Route::any('create-users', [App\Http\Controllers\CronJobController::class, 'createUsers']);
 
-Route::any('upload-file', [\App\Http\Controllers\ManageLargeData::class, 'uploadLargeFile']);
+
+Route::get('test', function () {
+    return 'Test API is working';
+});

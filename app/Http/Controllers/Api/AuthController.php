@@ -56,6 +56,18 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'email'    => 'required|email:rfc,dns',
+            'password' => 'required|string|min:6',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'statusCode' => 'ERR',
+                'message'    => 'Validation error',
+                'data'       => $validator->errors(),
+            ], 422);
+        }
+
         $credentials = $request->only('email', 'password');
         try {
             if (! $token = JWTAuth::attempt($credentials)) {

@@ -1,9 +1,11 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Models\User;
+use GuzzleHttp\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -41,9 +43,20 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
+        if (!auth()->user()) {
+            return response()->json([
+                'statusCode' => 'ERR',
+                'message'    => 'Unauthenticated',
+            ], 401);
+        }
         $validator = Validator::make($request->all(), [
             'title'  => 'required|string|min:5|max:255',
-            'status' => 'required|in:pending,in_progress,completed',
+            'status' => function ($attribute, $value, $fail) {
+                $allowedStatuses = ['pending', 'in_progress', 'completed'];
+                if (! in_array($value, $allowedStatuses)) {
+                    $fail('The ' . $attribute . ' must be one of: ' . implode(', ', $allowedStatuses) . '.');
+                }
+            },
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -52,6 +65,7 @@ class TaskController extends Controller
                 'data'       => $validator->errors(),
             ], 422);
         }
+
         $task = Task::create([
             'title'   => $request->get('title'),
             'user_id' => auth()->user()->id,
@@ -146,7 +160,5 @@ class TaskController extends Controller
             'message'    => 'User tasks fetched successfully',
             'data'       => $userTaskWithpendingCount,
         ]);
-
     }
-
 }

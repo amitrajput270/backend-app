@@ -87,7 +87,7 @@ class CronJobController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cron job created successfully.',
-            'data'    => $validated,
+            'data'    => $commandSchedule,
         ]);
     }
 
