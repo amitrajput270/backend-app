@@ -20,7 +20,13 @@ class AuthController extends Controller
         return response()->json([
             'statusCode' => 'TXN',
             'message'    => 'Users fetched successfully',
-            'data'       => User::all(),
+            'data'       => User::select(
+                'id',
+                'name',
+                'email',
+                'created_at',
+                'updated_at'
+            )->get(),
         ]);
     }
 

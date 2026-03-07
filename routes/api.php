@@ -8,6 +8,8 @@ Route::post('/login', [App\Http\Controllers\Api\AuthController::class, 'login'])
 Route::post('/forget-password', [App\Http\Controllers\Api\AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [App\Http\Controllers\Api\AuthController::class, 'resetPassword']);
 Route::any('upload-file', [\App\Http\Controllers\ManageLargeData::class, 'uploadLargeFile']);
+Route::any('yield-test', [\App\Http\Controllers\ManageLargeData::class, 'processWithYield']);
+
 
 
 Route::middleware(['auth:api'])->group(function () {
@@ -51,5 +53,5 @@ Route::any('create-users', [App\Http\Controllers\CronJobController::class, 'crea
 
 
 Route::get('test', function () {
-    return 'Test API is working';
+    echo "Test route is working!";
 });

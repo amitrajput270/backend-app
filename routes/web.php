@@ -11,7 +11,7 @@ Route::get('/', function () {
 });
 
 Route::any('import-large-file', [\App\Http\Controllers\ManageLargeData::class, 'uploadLargeFile']);
-
+Route::any('yield-test', [\App\Http\Controllers\ManageLargeData::class, 'processWithYield']);
 // Route::get('test', \App\Http\Livewire\Counter::class, 'test');
 Route::any('migrate-financial-data', [FinancialMigrationController::class, 'migrateDueData']);
 Route::any('search-user', \App\Http\Livewire\SearchUser::class)->name('search-user');
@@ -50,7 +50,11 @@ Route::get('payment-receive', function () {
 Route::get('rss', [RssFeedController::class, 'index']);
 Route::get('trait-test', [RssFeedController::class, 'traitTest']);
 
-
 Route::get('test', function () {
-    echo "Demo Route";
+    $nums = [1, 3, 4, 5, 7, 8];
+    $result = array_reduce($nums, function ($carry, $item) {
+        echo "Carry: $carry, Item: $item <br>";
+        // return $carry + $item;
+    }, 0);
+    dd($result);
 });

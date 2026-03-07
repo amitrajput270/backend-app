@@ -1,59 +1,221 @@
+-- Active: 1749118852752@@127.0.0.1@3306@backend-app
 <?php
 
 namespace App\Http\Controllers;
 
+use App\Exports\FeesExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use League\Csv\Reader;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ManageLargeData extends Controller
 {
+
+    public function processWithYield(Request $request)
+    {
+        // Generator that processes and yields results
+        $processor = function () use ($request) {
+            $request->validate([
+                'file' => 'required|file|mimes:csv,txt',
+            ]);
+            $file = $request->file('file');
+            if (!$file || !$file->isValid()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid or missing file upload.',
+                ], 422);
+            }
+
+            $filePath = $file->getRealPath();
+            dd($filePath);
+
+            if (!File::exists($filePath)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "File not found: {$filePath}"
+                ], 404);
+            }
+
+            $csv = Reader::createFromPath($filePath, 'r');
+            $csv->setHeaderOffset(0);
+            DB::connection()->disableQueryLog();
+            foreach ($csv->getRecords() as $record) {
+                yield $record;
+
+                // Optional: sleep to simulate processing time
+                // if ($i % 10 === 0) {
+                //     sleep(1);
+                // }
+            }
+            // for ($i = 0; $i < 1000000; $i++) {
+            //     // Simulate processing
+            //     $result = [
+            //         'batch' => $i,
+            //         'processed' => $i * 100,
+            //         'memory' => memory_get_usage() / 1024 / 1024 . ' MB'
+            //     ];
+
+            //     yield $result;
+
+            // Optional: sleep to simulate processing time
+            // if ($i % 10 === 0) {
+            //     sleep(1);
+            // }
+            // }
+        };
+
+        // return response()->json([
+        //     'status' => 'success',
+        //     'message' => 'Processing started',
+        //     'data' => [
+        //         'info' => 'Use the /yield-test endpoint to stream results as they are processed.'
+        //     ]
+        // ], 200);
+
+        // Return as JSON stream
+        return response()->stream(function () use ($processor) {
+            foreach ($processor() as $data) {
+                dd($data);
+                echo json_encode($data) . "\n";
+                flush();
+            }
+        });
+    }
+
+
     public function uploadLargeFile(Request $request)
     {
-        if ($request->method() == 'GET') {
+        $processor = function () use ($request) {
+            $request->validate([
+                'file' => 'required|file|mimes:csv,txt',
+            ]);
+            $file = $request->file('file');
+            if (!$file || !$file->isValid()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid or missing file upload.',
+                ], 422);
+            }
+
+            $filePath = $file->getRealPath();
+
+            if (!File::exists($filePath)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "File not found: {$filePath}"
+                ], 404);
+            }
+            $csv = Reader::createFromPath($filePath, 'r');
+            $csv->setHeaderOffset(0);
+            DB::connection()->disableQueryLog();
+            foreach ($csv->getRecords() as $record) {
+                yield $record;
+            }
+        };
+
+        $chunk = [];
+        $chunkSize = 1000;
+        $imported = 0;
+        return response()->stream(function () use ($processor, $chunkSize, &$imported, &$chunk) {
+            DB::beginTransaction();
+            try {
+                foreach ($processor() as $data) {
+                    // dd($data);
+                    $chunk[] = $data;
+                    $chunkCount = count($chunk);
+                    if ($chunkCount === $chunkSize) {
+                        $this->insertChunk($chunk);
+                        $imported += $chunkSize;
+                        $chunk = [];
+                    }
+                    flush();
+                }
+                if (!empty($chunk)) {
+                    $this->insertChunk($chunk);
+                    $imported += $chunkCount;
+                }
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ]);
+            }
+            echo json_encode([
+                'status' => 'success',
+                'imported_records' => $imported
+            ]);
+        });
+    }
+
+    public function uploadLargeFileNew(Request $request)
+    {
+        if ($request->isMethod('get')) {
             return view('import-large-file');
         }
+
         $request->validate([
             'file' => 'required|file|mimes:csv,txt',
         ]);
+
         $file = $request->file('file');
-        if (!$file || !$file->isValid()) {
+
+        if (! $file || ! $file->isValid()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid or missing file upload.',
             ], 422);
         }
-        $chunkSize = 2000;
+
         $filePath = $file->getRealPath();
-        if (!File::exists($filePath)) {
+
+        if (! File::exists($filePath)) {
             return response()->json([
                 'status' => 'error',
-                'message' => "File not found: {$filePath}"
+                'message' => "File not found: {$filePath}",
             ], 404);
         }
-        DB::connection()->disableQueryLog();
-        $csv = Reader::createFromPath($filePath, 'r');
-        $csv->setHeaderOffset(0);
+
+        DB::disableQueryLog();
+
+        $chunkSize = 1000;
         $chunk = [];
         $imported = 0;
-        foreach ($csv->getRecords() as $record) {
-            $chunk[] = $record;
-            if (count($chunk) >= $chunkSize) {
+
+        foreach ($this->csvGenerator($filePath) as $row) {
+
+            $chunk[] = $row;
+            if (count($chunk) === $chunkSize) {
                 $this->insertChunk($chunk);
-                $imported += count($chunk);
+                $imported += $chunkSize;
                 $chunk = [];
             }
         }
-        if (!empty($chunk)) {
+
+        if (! empty($chunk)) {
             $this->insertChunk($chunk);
             $imported += count($chunk);
         }
+
         return response()->json([
             'status' => 'success',
-            'imported_records' => $imported
+            'imported_records' => $imported,
         ]);
+    }
+
+    private function csvGenerator(string $filePath): \Generator
+    {
+        $csv = Reader::createFromPath($filePath, 'r');
+        $csv->setHeaderOffset(0);
+
+        foreach ($csv->getRecords() as $record) {
+            yield $record;
+        }
     }
 
     private function insertChunk(array $chunk)
@@ -64,7 +226,6 @@ class ManageLargeData extends Controller
             \Log::error("Insert error: " . $e->getMessage());
         }
     }
-
 
     public function index()
     {
