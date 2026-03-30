@@ -13,6 +13,7 @@ class SearchUser extends Component
 
     public $search        = '';
     public $selectAll     = false;
+    public $numberOfPaginatorsRendered = [];
     protected $listeners  = ['deleteSelected', 'deleteUser', 'cancelEdit'];
     public $editingUserId = null;
     public $editingName   = '';
@@ -28,7 +29,7 @@ class SearchUser extends Component
         $this->editingUserId = null;
     }
 
-    public function updatingSearch()
+    public function updatedSearch()
     {
         $this->resetPage();
     }
@@ -82,9 +83,9 @@ class SearchUser extends Component
         }
     }
 
-    public function deleteUser($id)
+    public function deleteUser($userId)
     {
-        if ($user = User::find($id)) {
+        if ($user = User::find($userId)) {
             $user->delete();
             session()->flash('message', 'User deleted successfully.');
         } else {
@@ -92,10 +93,9 @@ class SearchUser extends Component
         }
     }
 
-    public function deleteSelected($userIds = null)
+    public function deleteSelected($selectedUsers = null)
     {
-        $userIds = json_decode($userIds, true);
-
+        $userIds = json_decode($selectedUsers, true);
         if (! empty($userIds)) {
             User::whereIn('id', $userIds)->delete();
             session()->flash('message', count($userIds) . ' users deleted successfully.');
@@ -106,10 +106,11 @@ class SearchUser extends Component
 
     public function render()
     {
-        $searchTerm = strtolower($this->search);
-
-        $users = User::where('name', 'like', "%{$searchTerm}%")
-            ->orWhere('email', 'like', "%{$searchTerm}%")
+        $searchTerm = $this->search;
+        $users = User::where(function ($query) use ($searchTerm) {
+            $query->where('name', 'like', "%{$searchTerm}%")
+                ->orWhere('email', 'like', "%{$searchTerm}%");
+        })
             ->orderBy('id', 'desc')
             ->paginate(10);
 

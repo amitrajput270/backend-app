@@ -10,6 +10,7 @@
             @endif
 
             <input type="text" wire:model.debounce.500ms="search" class="form-control mb-3" placeholder="Search users...">
+            <div>Search value: {{ $search }}</div>
             <button wire:click="createUser" class="btn btn-primary btn-sm mb-3" wire:loading.attr="disabled">Create User</button>
             <button class="btn btn-danger btn-sm mb-3" id="deleteSelected" disabled>Delete Selected</button>
         </div>
@@ -50,7 +51,7 @@
                     <td>
                         @if ($editingUserId === $user->id)
                         <button wire:click="updateUser" class="btn btn-success btn-sm">Save</button>
-                        <button onclick="Livewire.emit('cancelEdit')" class="btn btn-secondary btn-sm">Cancel</button>
+                        <button onclick="Livewire.dispatch('cancelEdit')" class="btn btn-secondary btn-sm">Cancel</button>
                         @else
                         <button wire:click="editUser({{ $user->id }})" class="btn btn-primary btn-sm">Edit</button>
                         <button onclick="confirmDelete(this.dataset.userId)" data-user-id="{{ $user->id }}" class="btn btn-danger btn-sm">Delete</button>
@@ -71,7 +72,7 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("livewire:init", function() {
         const selectAllCheckbox = document.getElementById("selectAll");
         const deleteButton = document.getElementById("deleteSelected");
 
@@ -96,7 +97,9 @@
         deleteButton.addEventListener("click", function() {
             const selectedUsers = [...document.querySelectorAll(".userCheckbox:checked")].map(checkbox => checkbox.value);
             if (selectedUsers.length > 0 && confirm("Are you sure you want to delete the selected users?")) {
-                Livewire.emit("deleteSelected", JSON.stringify(selectedUsers));
+                Livewire.dispatch('deleteSelected', {
+                    selectedUsers: JSON.stringify(selectedUsers)
+                });
                 selectAllCheckbox.checked = false;
             }
         });
@@ -104,7 +107,9 @@
 
     function confirmDelete(userId) {
         if (confirm("Are you sure you want to delete this user?")) {
-            Livewire.emit('deleteUser', userId);
+            Livewire.dispatch('deleteUser', {
+                userId: userId
+            });
         }
     }
 </script>
