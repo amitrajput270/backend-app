@@ -41,8 +41,8 @@ Route::any('custom-webhook-gitguardian', function () {
 });
 
 Route::get('hash-password', function () {
-    $password = 'peb@123';
-    $hashedPassword = Hash::make($password);
+    $password = 'password@123';
+    $hashedPassword = \Hash::make($password);
     return response()->json(['hashed_password' => $hashedPassword]);
 });
 
