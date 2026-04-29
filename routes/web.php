@@ -2,13 +2,11 @@
 
 use App\Http\Controllers\FinancialMigrationController;
 use App\Http\Controllers\RssFeedController;
-use Illuminate\Http\Request;
+// use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('users');
-});
+Route::get('/', fn() => view('users'));
 
 Route::any('import-large-file', [\App\Http\Controllers\ManageLargeData::class, 'uploadLargeFile']);
 Route::any('yield-test', [\App\Http\Controllers\ManageLargeData::class, 'processWithYield']);
@@ -66,7 +64,7 @@ Route::get('trait-test', [RssFeedController::class, 'traitTest']);
 
 
 Route::get('test', function () {
-    $arr  = [5, 1, 6, 2, 2, 3, 4, 4, 5];
+    $arr = [5, 1, 6, 2, 2, 3, 4, 4, 5];
     $uniqueArr = [];
     foreach ($arr as $key => $value) {
         $uniqueArr[$value] = $value;
@@ -77,12 +75,12 @@ Route::get('test', function () {
     $max = max($uniqueArr);
     $min = min($uniqueArr);
     return response()->json([
-        'success'    => true,
-        'message'    => 'Interview question solved successfully',
-        'data'       => [
+        'success' => true,
+        'message' => 'Interview question solved successfully',
+        'data' => [
             'unique' => $uniqueArr,
-            'max'    => $max,
-            'min'    => $min,
+            'max' => $max,
+            'min' => $min,
         ]
     ]);
 });

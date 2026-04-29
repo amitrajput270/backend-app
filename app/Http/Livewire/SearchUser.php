@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use App\Models\User;
+use App\Traits\AlertHelper;
 use Faker\Factory as Faker;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -12,21 +13,22 @@ use SweetAlert2\Laravel\Traits\WithSweetAlert;
 
 
 
+
 class SearchUser extends Component
 {
-    use WithPagination, WithFileUploads, WithSweetAlert;
+    use WithPagination, WithFileUploads, WithSweetAlert, AlertHelper;
 
-    public $search        = '';
-    public $selectAll     = false;
+    public $search = '';
+    public $selectAll = false;
     public $importFile;
     public $numberOfPaginatorsRendered = [];
-    protected $listeners  = ['deleteSelected', 'deleteUsers', 'cancelEdit'];
+    protected $listeners = ['deleteSelected', 'deleteUsers', 'cancelEdit'];
     public $editingUserId = null;
-    public $editingName   = '';
-    public $editingEmail  = '';
+    public $editingName = '';
+    public $editingEmail = '';
 
     protected $rules = [
-        'editingName'  => 'required|string|max:255|min:3',
+        'editingName' => 'required|string|max:255|min:3',
         'editingEmail' => 'required|email',
     ];
 
@@ -78,53 +80,48 @@ class SearchUser extends Component
     {
         $userCount = User::count();
         $remaining = 100 - $userCount;
-
         if ($remaining > 0) {
             $faker = Faker::create('en_IN');
             $users = [];
-
-            $states = ['Uttar Pradesh', 'Delhi', 'Maharashtra', 'Rajasthan'];
-            $cities = ['Noida', 'Delhi', 'Mumbai', 'Jaipur'];
             for ($i = 0; $i < $remaining; $i++) {
                 $name = $faker->name();
                 $city = $faker->city();
                 $state = $faker->state();
-                $country = $faker->country('India');
+                $country = $faker->country();
                 $pincode = $faker->numberBetween(110001, 855126);
                 $username = strtolower(str_replace(' ', '.', $name));
                 $users[] = [
-                    'name'       => $name,
-                    'email'      => $username.$faker->unique()->numberBetween(1000, 9999).'@gmail.com',
-                    'password'   => \Hash::make('12345678'),
-
-        'address' => $faker->streetAddress(),
-        'city' => $city,
-        'state' => $state,
-        'country' => $country,
-        'pincode' => $pincode,
+                    'name' => $name,
+                    'email' => $username . $faker->unique()->numberBetween(1000, 9999) . '@gmail.com',
+                    'password' => \Hash::make('12345678'),
+                    'address' => $faker->streetAddress(),
+                    'city' => $city,
+                    'state' => $state,
+                    'country' => $country,
+                    'pincode' => $pincode,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
             }
             User::insert($users);
-            session()->flash('message', "$remaining users created successfully.");
+            $this->alert([
+                'icon' => 'success',
+                'text' => "$remaining users created successfully."
+            ]);
         } else {
-            $this->swalFire([
-            'title' => 'Saved successfully!',
-            'text' => 'The save method was called successfully!',
-            'icon' => 'success',
-            'confirmButtonText' => 'Lovssssely'
-        ]);
-            session()->flash('message', 'User count is already 100.');
+            $this->alert([
+                'icon' => 'info',
+                'text' => 'User count is already 100.'
+            ]);
         }
     }
 
     public function editUser($id)
     {
-        $user                = User::findOrFail($id);
+        $user = User::findOrFail($id);
         $this->editingUserId = $user->id;
-        $this->editingName   = $user->name;
-        $this->editingEmail  = $user->email;
+        $this->editingName = $user->name;
+        $this->editingEmail = $user->email;
     }
 
     public function updateUser()
@@ -135,12 +132,15 @@ class SearchUser extends Component
         if ($this->editingUserId) {
             $user = User::findOrFail($this->editingUserId);
             $user->update([
-                'name'  => $this->editingName,
+                'name' => $this->editingName,
                 'email' => $this->editingEmail,
             ]);
 
             $this->reset(['editingUserId', 'editingName', 'editingEmail']);
-            session()->flash('message', 'User updated successfully.');
+            $this->alert([
+                'icon' => 'success',
+                'text' => "User updated successfully."
+            ]);
         }
     }
 
@@ -149,23 +149,21 @@ class SearchUser extends Component
         // Extract user IDs from different possible input formats
         $userIds = $this->extractUserIds($selectedUsers);
         if (empty($userIds)) {
-            session()->flash('message', 'No users specified for deletion.');
+            $this->alert([
+                'icon' => 'error',
+                'text' => 'No users specified for deletion.'
+            ]);
             return;
         }
-
         // Remove duplicates and validate IDs
         $userIds = array_unique(array_filter($userIds, 'is_numeric'));
-
         if (empty($userIds)) {
-            session()->flash('message', 'Invalid user IDs provided.');
+            $this->alert([
+                'icon' => 'error',
+                'text' => 'Invalid user IDs provided.'
+            ]);
             return;
         }
-
-        // Prevent deleting all users if needed (optional safety measure)
-        // if (count($userIds) === User::count()) {
-        //     session()->flash('message', 'Cannot delete all users at once.');
-        //     return;
-        // }
 
         try {
             $deletedCount = User::whereIn('id', $userIds)->delete();
@@ -173,14 +171,22 @@ class SearchUser extends Component
                 $message = $deletedCount === 1
                     ? 'User deleted successfully.'
                     : "$deletedCount users deleted successfully.";
-                session()->flash('message', $message);
+                $this->alert([
+                    'icon' => 'success',
+                    'text' => $message
+                ]);
             } else {
-                session()->flash('message', 'No users were deleted. They may have already been removed.');
+                $this->alert([
+                    'icon' => 'info',
+                    'text' => 'No users were deleted. They may have already been removed.'
+                ]);
             }
-
             $this->resetPage();
         } catch (\Exception $e) {
-            session()->flash('message', 'Error deleting users: ' . $e->getMessage());
+            $this->alert([
+                'icon' => 'error',
+                'text' => 'Error deleting users: ' . $e->getMessage()
+            ]);
         }
     }
 
@@ -196,43 +202,54 @@ class SearchUser extends Component
             $fullPath = storage_path('app/' . $path);
 
             if (!file_exists($fullPath)) {
-                session()->flash('message', 'Uploaded file not found.');
+                $this->alert([
+                    'icon' => 'error',
+                    'text' => 'Uploaded file not found.'
+                ]);
                 return;
             }
 
             $handle = fopen($fullPath, 'r');
             if ($handle === false) {
-                session()->flash('message', 'Failed to open uploaded file.');
+                $this->alert([
+                    'icon' => 'error',
+                    'text' => 'Failed to open uploaded file.'
+                ]);
                 return;
             }
 
             $header = fgetcsv($handle);
             if ($header === false) {
                 fclose($handle);
-                session()->flash('message', 'CSV file appears empty.');
+                $this->alert([
+                    'icon' => 'error',
+                    'text' => 'CSV file appears empty.'
+                ]);
                 return;
             }
 
             $created = 0;
             while (($row = fgetcsv($handle)) !== false) {
                 $data = array_combine($header, $row);
-                if ($data === false) continue;
+                if ($data === false)
+                    continue;
 
                 $name = $data['Name'] ?? $data['name'] ?? null;
                 $email = $data['Email'] ?? $data['email'] ?? null;
-                if (!$name || !$email) continue;
+                if (!$name || !$email)
+                    continue;
 
                 $userExists = User::withTrashed()->where('email', $email)->first();
-                    if ($userExists && $userExists->trashed() == true) {
-                        $userExists->restore();
-                        $userExists->update([
-                            'name' => $name,
-                        ]);
-                        $created++;
-                        continue;
-                    }elseif ($userExists && $userExists->trashed() == false) {
-                        continue;
-                    }
+                if ($userExists && $userExists->trashed() == true) {
+                    $userExists->restore();
+                    $userExists->update([
+                        'name' => $name,
+                    ]);
+                    $created++;
+                    continue;
+                } elseif ($userExists && $userExists->trashed() == false) {
+                    continue;
+                }
 
                 User::create([
                     'name' => $name,
@@ -245,19 +262,31 @@ class SearchUser extends Component
             fclose($handle);
             Storage::delete($path);
 
-            session()->flash('message', "$created users imported successfully.");
+            if ($created <= 0) {
+                $icon = 'info';
+                $message = 'No users imported (duplicates skipped or no valid records found).';
+            } else {
+                $icon = 'success';
+                $message = $created === 1 ? '1 user imported successfully.' : "$created users imported successfully.";
+            }
+
+            $this->alert([
+                'icon' => $icon,
+                'text' => $message
+            ]);
+
             $this->importFile = null;
             $this->resetPage();
 
-          $this->dispatch('importCompleted');
+            $this->dispatch('importCompleted');
         } catch (\Exception $e) {
-            session()->flash('message', 'Import failed: ' . $e->getMessage());
+            $this->alert([
+                'icon' => 'error',
+                'text' => 'Import failed: ' . $e->getMessage()
+            ]);
         }
     }
 
-    /**
-     * Extract user IDs from various input formats
-     */
     private function extractUserIds($data): array
     {
         // Case 1: Single user ID passed as parameter from deleteUser event
