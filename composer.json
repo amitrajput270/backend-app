@@ -14,7 +14,8 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.7",
         "league/csv": "^9.28",
-        "livewire/livewire": "^3.0",
+        "livewire/livewire": "^4.0",
+        "sweetalert2/laravel": "^1.4",
         "twbs/bootstrap": "^5.3",
         "tymon/jwt-auth": "^2.3",
         "willvincent/feeds": "^2.7"

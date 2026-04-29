@@ -15,6 +15,7 @@ Route::any('yield-test', [\App\Http\Controllers\ManageLargeData::class, 'process
 // Route::get('test', \App\Http\Livewire\Counter::class, 'test');
 Route::any('migrate-financial-data', [FinancialMigrationController::class, 'migrateDueData']);
 Route::any('search-user', \App\Http\Livewire\SearchUser::class)->name('search-user');
+Route::get('users-export', [\App\Http\Livewire\SearchUser::class, 'export'])->name('users.export');
 Route::get('payment-receive', function () {
     $paymentReceipt = DB::table('payment_receipts as pr')
         ->select('pr.id', 'pr.reference_no', 'pr.date', 'pr.student_id')
@@ -50,11 +51,38 @@ Route::get('payment-receive', function () {
 Route::get('rss', [RssFeedController::class, 'index']);
 Route::get('trait-test', [RssFeedController::class, 'traitTest']);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Route::get('test', function () {
-    $nums = [1, 3, 4, 5, 7, 8];
-    $result = array_reduce($nums, function ($carry, $item) {
-        echo "Carry: $carry, Item: $item <br>";
-        // return $carry + $item;
-    }, 0);
-    dd($result);
+    $arr  = [5, 1, 6, 2, 2, 3, 4, 4, 5];
+    $uniqueArr = [];
+    foreach ($arr as $key => $value) {
+        $uniqueArr[$value] = $value;
+    }
+
+    $uniqueArr = array_values($uniqueArr);
+    sort($uniqueArr);
+    $max = max($uniqueArr);
+    $min = min($uniqueArr);
+    return response()->json([
+        'success'    => true,
+        'message'    => 'Interview question solved successfully',
+        'data'       => [
+            'unique' => $uniqueArr,
+            'max'    => $max,
+            'min'    => $min,
+        ]
+    ]);
 });

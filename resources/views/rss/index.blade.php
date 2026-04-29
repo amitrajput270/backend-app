@@ -23,7 +23,7 @@
                     <a href="{{ $item['link'] }}" target="_blank"> {{$index + 1}}.{{ $item['title'] }}</a>
                 </h5>
                 @if($item['description'])
-                <p class="card-text">{{ Str::limit($item['description'], 200) }}</p>
+                <p class="card-text">{{ \Str::limit($item['description'], 1000) }}</p>
                 @endif
                 <small class="text-muted">
                     {{ $item['date'] }}
