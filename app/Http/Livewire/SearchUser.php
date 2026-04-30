@@ -9,14 +9,10 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
-use SweetAlert2\Laravel\Traits\WithSweetAlert;
-
-
-
 
 class SearchUser extends Component
 {
-    use WithPagination, WithFileUploads, WithSweetAlert, AlertHelper;
+    use WithPagination, WithFileUploads, AlertHelper;
 
     public $search = '';
     public $selectAll = false;
