@@ -1,96 +1,163 @@
 @section('title', 'User Management')
+
 <div>
     <div class="container mt-4">
         <h4 class="mb-3 user-list">Users List</h4>
 
-        <div class="col-lg-6 -mb-2">
-            @if (session()->has('message'))
-                <div id="success-message" class="alert alert-success auto-hide-message" role="alert">
-                    {{ session('message') }}
-                </div>
-            @endif
-            <input id="searchInput" type="text" wire:model.live.debounce.500ms="search" class="form-control mb-3"
-                placeholder="Search users...">
+        {{-- Search and Actions Section --}}
+        <div class="row mb-3">
+            <div class="col-lg-6">
+                <input type="text" wire:model.live.debounce.500ms="search" class="form-control"
+                    placeholder="Search users by name or email...">
+            </div>
+            <div class="col-lg-6">
+                <div class="btn-group" role="group">
+                    <button wire:click="createUser" class="btn btn-primary btn-sm" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="createUser">Create User</span>
+                        <span wire:loading wire:target="createUser">Creating...</span>
+                    </button>
 
-            <button wire:click="createUser" class="btn btn-primary btn-sm mb-3" wire:loading.attr="disabled">Create
-                User</button>
-            <button class="btn btn-danger btn-sm mb-3" id="deleteSelected" disabled>Delete Selected</button>
-            <button id="exportBtn" class="btn btn-success btn-sm mb-3">Export CSV</button>
-            <button id="openImportBtn" class="btn btn-info btn-sm mb-3" data-bs-toggle="modal"
-                data-bs-target="#importModal">Import CSV</button>
+                    <button class="btn btn-danger btn-sm" id="deleteSelected" disabled>
+                        Delete Selected
+                    </button>
+
+                    <button id="exportBtn" class="btn btn-success btn-sm">
+                        Export CSV
+                    </button>
+
+                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#importModal">
+                        Import CSV
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <table class="table table-striped table-bordered">
-            <thead class="thead-dark">
-                <tr>
-                    <th><input type="checkbox" id="selectAll"></th>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Created At</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($users as $index => $user)
-                    <tr wire:key="user-{{ $user->id }}">
-                        <td><input type="checkbox" class="userCheckbox" value="{{ $user->id }}"></td>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>
-                            @if ($editingUserId === $user->id)
-                                <input type="text" wire:model.live="editingName" class="form-control" autofocus="true">
-                                @error('editingName') <span class="text-danger">{{ $message }}</span> @enderror
-                            @else
-                                {{ $user->name }}
-                            @endif
-                        </td>
-                        <td>
-                            @if ($editingUserId === $user->id)
-                                <input type="email" wire:model.live="editingEmail" class="form-control">
-                                @error('editingEmail') <span class="text-danger">{{ $message }}</span> @enderror
-                            @else
-                                {{ $user->email }}
-                            @endif
-                        </td>
-                        <td>{{ $user->created_at->format('M j, Y g:i a') }}</td>
-                        <td>
-                            @if ($editingUserId === $user->id)
-                                <button wire:click="updateUser" class="btn btn-success btn-sm">Save</button>
-                                <button wire:click="cancelEdit" class="btn btn-secondary btn-sm">Cancel</button>
-                            @else
-                                <button wire:click="editUser({{ $user->id }})" class="btn btn-primary btn-sm">Edit</button>
-                                <button onclick="confirmDelete('{{ $user->id }}')" class="btn btn-danger btn-sm">Delete</button>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center">No users found</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+        {{-- Success Message --}}
+        @if (session()->has('message'))
+            <div class="alert alert-success alert-dismissible fade show auto-hide-message" role="alert">
+                {{ session('message') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
-        <div class="d-flex justify-content-center">
+        {{-- Users Table --}}
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th width="50"><input type="checkbox" id="selectAll"></th>
+                        <th width="80">ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th width="200">Created At</th>
+                        <th width="150">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($users as $user)
+                        <tr wire:key="user-{{ $user->id }}">
+                            <td class="text-center">
+                                <input type="checkbox" class="userCheckbox" value="{{ $user->id }}">
+                            </td>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>
+                                @if ($editingUserId === $user->id)
+                                    <input type="text" wire:model="editingName"
+                                        class="form-control form-control-sm @error('editingName') is-invalid @enderror"
+                                        autofocus>
+                                    @error('editingName')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                @else
+                                    {{ $user->name }}
+                                @endif
+                            </td>
+                            <td>
+                                @if ($editingUserId === $user->id)
+                                    <input type="email" wire:model="editingEmail"
+                                        class="form-control form-control-sm @error('editingEmail') is-invalid @enderror">
+                                    @error('editingEmail')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                @else
+                                    {{ $user->email }}
+                                @endif
+                            </td>
+                            <td>{{ $user->created_at?->format('M j, Y g:i a') }}</td>
+                            <td>
+                                @if ($editingUserId === $user->id)
+                                    <button wire:click="updateUser" class="btn btn-success btn-sm" wire:loading.attr="disabled">
+                                        Save
+                                    </button>
+                                    <button wire:click="cancelEdit" class="btn btn-secondary btn-sm">
+                                        Cancel
+                                    </button>
+                                @else
+                                    <button wire:click="editUser({{ $user->id }})" class="btn btn-primary btn-sm">
+                                        Edit
+                                    </button>
+                                    <button wire:click="confirmSingleDelete({{ $user->id }})" class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="bi bi-people"></i> No users found
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        <div class="d-flex justify-content-center mt-3">
             {{ $users->links('vendor.livewire.bootstrap') }}
         </div>
     </div>
-    <!-- Import Modal -->
+
+    {{-- Import Modal --}}
     <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Import Users</h5>
+                    <h5 class="modal-title">Import Users from CSV</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="file" wire:model="importFile" accept=".csv" class="form-control">
-                    @error('importFile') <span class="text-danger">{{ $message }}</span> @enderror
-                    <div wire:loading wire:target="importFile" class="mt-2">Uploading...</div>
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">Choose CSV File</label>
+                        <input type="file" wire:model="importFile" id="importFile" accept=".csv"
+                            class="form-control @error('importFile') is-invalid @enderror">
+                        @error('importFile')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text text-muted">
+                            CSV should contain 'name' and 'email' columns
+                        </small>
+                    </div>
+
+                    <div wire:loading wire:target="importFile" class="alert alert-info">
+                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                        Uploading file...
+                    </div>
+
+                    <div wire:loading wire:target="import" class="alert alert-info">
+                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                        Importing users...
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button wire:click="import" wire:loading.attr="disabled" class="btn btn-primary">Import</button>
+                    <button wire:click="import" wire:loading.attr="disabled" class="btn btn-primary">
+                        Import Users
+                    </button>
                 </div>
             </div>
         </div>
@@ -98,253 +165,302 @@
 </div>
 
 <script>
-    // Export selected or filtered users
+    // Optimized SweetAlert and UI interactions
     (function () {
-        const exportBtn = document.getElementById('exportBtn');
-        if (!exportBtn) return;
-        exportBtn.addEventListener('click', function (e) {
-            const selected = [...document.querySelectorAll('.userCheckbox:checked')].map(c => c.value);
-            const base = '{{ route('users.export') }}';
-            if (selected.length > 0) {
-                // navigate with ids as comma-separated list
-                const url = base + '?ids=' + encodeURIComponent(selected.join(','));
-                window.location = url;
-                return;
+        'use strict';
+
+        // DOM Elements
+        let selectAllCheckbox = null;
+        let deleteButton = null;
+        let exportBtn = null;
+        let modalEl = null;
+
+        // Helper Functions
+        const toggleDeleteButton = () => {
+            if (!deleteButton) return;
+            const checkedBoxes = document.querySelectorAll('.userCheckbox:checked');
+            const count = checkedBoxes.length;
+
+            deleteButton.disabled = count === 0;
+            deleteButton.textContent = count > 0 ? `Delete Selected (${count})` : 'Delete Selected';
+        };
+
+        const updateSelectAllState = () => {
+            if (!selectAllCheckbox) return;
+            const allCheckboxes = document.querySelectorAll('.userCheckbox');
+            const checkedCheckboxes = document.querySelectorAll('.userCheckbox:checked');
+            selectAllCheckbox.checked = allCheckboxes.length > 0 && allCheckboxes.length === checkedCheckboxes.length;
+        };
+
+        const clearAllCheckboxes = () => {
+            document.querySelectorAll('.userCheckbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+            toggleDeleteButton();
+        };
+
+        // Modal Handlers
+        const hideImportModal = () => {
+            if (!modalEl) return;
+
+            if (window.bootstrap?.Modal) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
             }
 
-            // fallback to search param
-            const search = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
-            window.location = base + '?search=' + encodeURIComponent(search || '');
-        });
-    })();
+            modalEl.classList.remove('show', 'd-block');
+            modalEl.style.backgroundColor = '';
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
 
-    // Fallback to open import modal programmatically if data attributes fail
-    (function () {
-        function setBackgroundInert(isInert) {
+            // Reset file input
+            const fileInput = modalEl.querySelector('input[type="file"]');
+            if (fileInput) fileInput.value = '';
+        };
+
+        // Initialize Livewire Event Listeners
+        document.addEventListener('livewire:init', () => {
+            // Cache DOM elements
+            selectAllCheckbox = document.getElementById('selectAll');
+            deleteButton = document.getElementById('deleteSelected');
+            exportBtn = document.getElementById('exportBtn');
+            modalEl = document.getElementById('importModal');
+
+            // Single Delete Confirmation
+            Livewire.on('swal:confirm-single', (event) => {
+                const data = event[0] || event;
+                Swal.fire({
+                    title: data.title,
+                    text: data.text,
+                    icon: data.icon,
+                    theme: 'auto',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: data.confirmButtonText,
+                    cancelButtonText: data.cancelButtonText,
+                    showLoaderOnConfirm: true,
+                    preConfirm: async () => {
+                        try {
+                            await Livewire.dispatch('deleteUsers', { selectedUsers: [parseInt(data.userId)] });
+                            return true;
+                        } catch (error) {
+                            Swal.showValidationMessage(`Delete failed: ${error.message || error}`);
+                        }
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) clearAllCheckboxes();
+                });
+            });
+
+            // Bulk Delete Confirmation
+            Livewire.on('swal:confirm-bulk', (event) => {
+                // Handle both array and object responses
+                let data = event[0] || event;
+                if (data.selectedUsers) {
+                    data = data;
+                } else if (Array.isArray(event)) {
+                    data = event[0];
+                }
+
+                Swal.fire({
+                    title: data.title,
+                    text: data.text,
+                    icon: data.icon,
+                    theme: 'auto',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: data.confirmButtonText,
+                    cancelButtonText: data.cancelButtonText,
+                    showLoaderOnConfirm: true,
+                    preConfirm: async () => {
+                        try {
+                            await Livewire.dispatch('deleteUsers', { selectedUsers: data.selectedUsers });
+                            return true;
+                        } catch (error) {
+                            Swal.showValidationMessage(`Delete failed: ${error.message || error}`);
+                        }
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) clearAllCheckboxes();
+                });
+            });
+
+            // User Deleted Event
+            Livewire.on('userDeleted', () => {
+                clearAllCheckboxes();
+            });
+
+            // Initialize checkbox handlers
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', () => {
+                    const isChecked = selectAllCheckbox.checked;
+                    document.querySelectorAll('.userCheckbox').forEach(checkbox => {
+                        checkbox.checked = isChecked;
+                    });
+                    toggleDeleteButton();
+                });
+            }
+
+            // Individual checkbox change handler
+            document.addEventListener('change', (e) => {
+                if (e.target.classList?.contains('userCheckbox')) {
+                    toggleDeleteButton();
+                    updateSelectAllState();
+                }
+            });
+
+            // Delete button handler
+            if (deleteButton) {
+                deleteButton.addEventListener('click', () => {
+                    const selectedUsers = Array.from(document.querySelectorAll('.userCheckbox:checked'))
+                        .map(checkbox => checkbox.value);
+                    if (selectedUsers.length > 0) {
+                        // Wrap the array in another array to pass as single parameter
+                        Livewire.dispatch('confirmBulkDelete', [selectedUsers]);
+                    }
+                });
+            }
+
+            // Export handler
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    const selected = Array.from(document.querySelectorAll('.userCheckbox:checked'))
+                        .map(c => c.value);
+                    const base = '{{ route("users.export") }}';
+                    const url = selected.length > 0
+                        ? `${base}?ids=${encodeURIComponent(selected.join(','))}`
+                        : `${base}?search=${encodeURIComponent(document.getElementById('searchInput')?.value || '')}`;
+                    window.location.href = url;
+                });
+            }
+
+            // Modal auto-hide on import completion
+            Livewire.on('importCompleted', hideImportModal);
+        });
+
+        // Modal inert state handling
+        const setBackgroundInert = (isInert) => {
             const container = document.querySelector('.container');
             if (!container) return;
-            try {
-                if (isInert) {
-                    container.setAttribute('inert', '');
-                    container.setAttribute('aria-hidden', 'true');
-                } else {
-                    container.removeAttribute('inert');
-                    container.removeAttribute('aria-hidden');
-                }
-            } catch (err) {
-                // ignore if inert not supported
-            }
-        }
-
-        function focusFirstInModal(modalEl) {
-            try {
-                const focusable = modalEl.querySelector('input, select, textarea, button, [tabindex]:not([tabindex="-1"])');
-                if (focusable) focusable.focus();
-                else modalEl.focus();
-            } catch (err) {
-                // ignore
-            }
-        }
-
-        const modalEl = document.getElementById('importModal');
-        if (!modalEl) return;
-
-        // If Bootstrap is available, hook into its events to set inert state
-        if (window.bootstrap && typeof bootstrap.Modal === 'function') {
-            modalEl.addEventListener('show.bs.modal', () => setBackgroundInert(true));
-            modalEl.addEventListener('shown.bs.modal', () => focusFirstInModal(modalEl));
-            modalEl.addEventListener('hidden.bs.modal', () => setBackgroundInert(false));
-        }
-
-        const btn = document.getElementById('openImportBtn');
-        if (!btn) return;
-
-        btn.addEventListener('click', function (e) {
-            // allow normal behavior if bootstrap works
-            setTimeout(() => {
-                if (modalEl.classList.contains('show')) return;
-
-                if (window.bootstrap && typeof bootstrap.Modal === 'function') {
-                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                    modal.show();
-                    return;
-                }
-
-                // Minimal fallback: add classes to display modal and update ARIA for accessibility
-                modalEl.classList.add('show', 'd-block');
-                modalEl.style.backgroundColor = 'rgba(0,0,0,0.5)';
-                try {
-                    modalEl.setAttribute('aria-hidden', 'false');
-                    modalEl.setAttribute('aria-modal', 'true');
-                    setBackgroundInert(true);
-                    focusFirstInModal(modalEl);
-                } catch (err) {
-                    // ignore focus/aria errors
-                }
-            }, 10);
-        });
-
-        // Hook up any buttons inside the modal that should dismiss it (works when Bootstrap missing)
-        const dismissButtons = modalEl.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
-        dismissButtons.forEach(btn => {
-            btn.addEventListener('click', function (ev) {
-                ev.preventDefault();
-                if (window.bootstrap && typeof bootstrap.Modal === 'function') {
-                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                    modal.hide();
-                    return;
-                }
-
-                // Fallback hide
-                modalEl.classList.remove('show', 'd-block');
-                modalEl.style.backgroundColor = '';
-                try {
-                    modalEl.setAttribute('aria-hidden', 'true');
-                    modalEl.removeAttribute('aria-modal');
-                    setBackgroundInert(false);
-                    // clear file input if present
-                    const fileInput = modalEl.querySelector('input[type="file"]');
-                    if (fileInput) fileInput.value = '';
-                    // remove backdrop if any
-                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                    document.body.classList.remove('modal-open');
-                } catch (err) {
-                    // ignore
-                }
-            });
-        });
-
-    })();
-
-    document.addEventListener('livewire:init', () => {
-        const selectAllCheckbox = document.getElementById("selectAll");
-        const deleteButton = document.getElementById("deleteSelected");
-
-        Livewire.on('checkboxStateChanged', () => {
-            toggleDeleteButton();
-        });
-
-        document.addEventListener("change", function (event) {
-            if (event.target.classList.contains("userCheckbox")) {
-                toggleDeleteButton();
-                selectAllCheckbox.checked = document.querySelectorAll(".userCheckbox:checked").length === document.querySelectorAll(".userCheckbox").length;
-            }
-        });
-
-        selectAllCheckbox.addEventListener("change", function () {
-            document.querySelectorAll(".userCheckbox").forEach(checkbox => {
-                checkbox.checked = selectAllCheckbox.checked;
-            });
-            toggleDeleteButton();
-        });
-
-        function toggleDeleteButton() {
-            const checkedBoxes = document.querySelectorAll(".userCheckbox:checked");
-            deleteButton.disabled = checkedBoxes.length === 0;
-
-            if (checkedBoxes.length > 0) {
-                deleteButton.textContent = `Delete Selected (${checkedBoxes.length})`;
+            if (isInert) {
+                container.setAttribute('inert', '');
+                container.setAttribute('aria-hidden', 'true');
             } else {
-                deleteButton.textContent = 'Delete Selected';
-            }
-        }
-
-        deleteButton.addEventListener("click", function () {
-            const selectedUsers = [...document.querySelectorAll(".userCheckbox:checked")].map(checkbox => checkbox.value);
-            if (selectedUsers.length > 0 && confirm(`Are you sure you want to delete ${selectedUsers.length} selected user(s)?`)) {
-                Livewire.dispatch('deleteUsers', {
-                    selectedUsers: selectedUsers
-                });
-                selectAllCheckbox.checked = false;
-                toggleDeleteButton();
-            }
-        });
-    });
-
-    function confirmDelete(userId) {
-        if (confirm("Are you sure you want to delete this user?")) {
-            Livewire.dispatch('deleteUsers', {
-                selectedUsers: parseInt(userId)
-            });
-        }
-    }
-
-    // Auto-hide session success message when it appears (handles dynamic insertion)
-    (function setupAutoHide() {
-        function hideMsg(msg) {
-            msg.style.transition = 'opacity 0.4s ease';
-            msg.style.opacity = '0';
-            setTimeout(() => msg.remove(), 400);
-        }
-
-        function startTimer(msg) {
-            // avoid multiple timers
-            if (msg.dataset.autoHideStarted) return;
-            msg.dataset.autoHideStarted = '1';
-            setTimeout(() => hideMsg(msg), 5000);
-        }
-
-        const existing = document.getElementById('success-message');
-        if (existing) startTimer(existing);
-
-        const observer = new MutationObserver((mutations) => {
-            for (const m of mutations) {
-                for (const node of m.addedNodes) {
-                    if (node.nodeType !== 1) continue;
-                    if (node.id === 'success-message') {
-                        startTimer(node);
-                        // If an import or other action created a flash message, close modal too
-                        if (typeof hideImportModal === 'function') {
-                            hideImportModal();
-                        }
-                        continue;
-                    }
-                    const nested = node.querySelector && node.querySelector('#success-message');
-                    if (nested) startTimer(nested);
-                }
-            }
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    })();
-
-    // Close import modal when Livewire signals completion (listen for both browser event and Livewire event)
-    function hideImportModal() {
-        const modalEl = document.getElementById('importModal');
-        if (!modalEl) return;
-        if (window.bootstrap && typeof bootstrap.Modal === 'function') {
-            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-            modal.hide();
-            return;
-        }
-
-        // Minimal fallback: hide classes and restore ARIA and inert state
-        modalEl.classList.remove('show', 'd-block');
-        try {
-            modalEl.setAttribute('aria-hidden', 'true');
-            modalEl.removeAttribute('aria-modal');
-            modalEl.style.backgroundColor = '';
-            const container = document.querySelector('.container');
-            if (container) {
                 container.removeAttribute('inert');
                 container.removeAttribute('aria-hidden');
             }
-            // clear file input if present
-            const fileInput = modalEl.querySelector('input[type="file"]');
-            if (fileInput) fileInput.value = '';
-            // remove backdrop and body modal-open class
-            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-            document.body.classList.remove('modal-open');
-        } catch (err) {
-            // ignore
+        };
+
+        // Initialize modal handlers
+        if (document.getElementById('importModal')) {
+            const modalElement = document.getElementById('importModal');
+
+            if (window.bootstrap?.Modal) {
+                modalElement.addEventListener('show.bs.modal', () => setBackgroundInert(true));
+                modalElement.addEventListener('hidden.bs.modal', () => setBackgroundInert(false));
+            }
+
+            // Close modal on outside click
+            modalElement.addEventListener('click', (e) => {
+                if (e.target === modalElement) {
+                    hideImportModal();
+                }
+            });
+        }
+
+        // Auto-hide session messages
+        const setupAutoHideMessages = () => {
+            const hideMessage = (msg) => {
+                msg.style.transition = 'opacity 0.4s ease';
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 400);
+            };
+
+            const startTimer = (msg) => {
+                if (msg.dataset.autoHideStarted) return;
+                msg.dataset.autoHideStarted = '1';
+                setTimeout(() => hideMessage(msg), 5000);
+            };
+
+            const existingMessage = document.getElementById('success-message');
+            if (existingMessage) startTimer(existingMessage);
+
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1 && node.id === 'success-message') {
+                            startTimer(node);
+                        }
+                    });
+                });
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+        };
+
+        setupAutoHideMessages();
+
+    })();
+</script>
+
+<style>
+    /* Custom styles for better UX */
+    .auto-hide-message {
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
         }
     }
 
-    window.addEventListener('importCompleted', hideImportModal);
-    if (window.Livewire && typeof Livewire.on === 'function') {
-        Livewire.on('importCompleted', hideImportModal);
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
     }
-</script>
+
+    .btn-group .btn {
+        margin-right: 5px;
+    }
+
+    /* Loading states */
+    .btn[wire\:loading] {
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    /* Responsive table */
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 14px;
+        }
+
+        .btn-group {
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .btn-group .btn {
+            margin-right: 0;
+        }
+    }
+
+    /* Modal animations */
+    .modal.fade .modal-dialog {
+        transform: scale(0.8);
+        transition: transform 0.2s ease-out;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+</style>

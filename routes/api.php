@@ -48,7 +48,7 @@ Route::get('hash-password', function () {
 
 
 
-Route::resource('cron-jobs', \App\Http\Controllers\CronJobController::class);
+Route::resource('cron-jobs', \App\Http\Controllers\CronJobController::class)->middleware(['auth:api']);
 Route::any('create-users', [App\Http\Controllers\CronJobController::class, 'createUsers']);
 
 

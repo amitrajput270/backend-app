@@ -14,6 +14,7 @@ Route::any('yield-test', [\App\Http\Controllers\ManageLargeData::class, 'process
 Route::any('migrate-financial-data', [FinancialMigrationController::class, 'migrateDueData']);
 Route::any('search-user', \App\Http\Livewire\SearchUser::class)->name('search-user');
 Route::get('users-export', [\App\Http\Livewire\SearchUser::class, 'export'])->name('users.export');
+
 Route::get('payment-receive', function () {
     $paymentReceipt = DB::table('payment_receipts as pr')
         ->select('pr.id', 'pr.reference_no', 'pr.date', 'pr.student_id')
@@ -65,12 +66,12 @@ Route::get('trait-test', [RssFeedController::class, 'traitTest']);
 
 Route::get('test', function () {
     $arr = [5, 1, 6, 2, 2, 3, 4, 4, 5];
-    $uniqueArr = [];
-    foreach ($arr as $key => $value) {
-        $uniqueArr[$value] = $value;
-    }
+    // $uniqueArr = [];
+    // foreach ($arr as $key => $value) {
+    //     $uniqueArr[$value] = $value;
+    // }
 
-    $uniqueArr = array_values($uniqueArr);
+    $uniqueArr = array_unique($arr);
     sort($uniqueArr);
     $max = max($uniqueArr);
     $min = min($uniqueArr);

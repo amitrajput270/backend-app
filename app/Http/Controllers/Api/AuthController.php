@@ -19,8 +19,8 @@ class AuthController extends Controller
     {
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'Users fetched successfully',
-            'data'       => User::select(
+            'message' => 'Users fetched successfully',
+            'data' => User::select(
                 'id',
                 'name',
                 'email',
@@ -33,28 +33,28 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'     => 'required|string|min:5|max:255',
-            'email'    => 'required|email:rfc,dns|unique:users',
+            'name' => 'required|string|min:5|max:255',
+            'email' => 'required|email:rfc,dns|unique:users',
             'password' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Validation error',
-                'data'       => $validator->errors(),
+                'message' => 'Validation error',
+                'data' => $validator->errors(),
             ], 422);
         }
         $user = User::create([
-            'name'     => $request->get('name'),
-            'email'    => $request->get('email'),
+            'name' => $request->get('name'),
+            'email' => $request->get('email'),
             'password' => Hash::make($request->get('password')),
         ]);
         $token = JWTAuth::fromUser($user);
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'User created successfully',
-            'data'       => [
-                'user'  => $user,
+            'message' => 'User created successfully',
+            'data' => [
+                'user' => $user,
                 'token' => $token,
             ],
         ]);
@@ -63,57 +63,58 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email'    => 'required|email:rfc,dns',
+            'email' => 'required|email:rfc,dns',
             'password' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Validation error',
-                'data'       => $validator->errors(),
+                'message' => 'Validation error',
+                'data' => $validator->errors(),
             ], 422);
         }
 
         $credentials = $request->only('email', 'password');
         try {
-            if (! $token = JWTAuth::attempt($credentials)) {
+            if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json([
                     'statusCode' => 'ERR',
-                    'message'    => 'Invalid credentials',
-                    'data'       => [],
+                    'message' => 'Invalid credentials',
+                    'data' => [],
                 ], 400);
             }
             $user = auth()->user();
             return response()->json([
                 'statusCode' => 'TXN',
-                'message'    => 'Login successful',
-                'data'       => [
-                    'user'  => $user,
+                'message' => 'Login successful',
+                'data' => [
+                    'user' => $user,
                     'token' => $token,
                 ],
             ]);
         } catch (JWTException $e) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => $e->getMessage(),
-                'data'       => [],
+                'message' => $e->getMessage(),
+                'data' => [],
             ], $e->getStatusCode());
         }
     }
 
     public function profile()
     {
-        if (! $user = JWTAuth::parseToken()->authenticate()) {
+        if (!$user = JWTAuth::parseToken()->authenticate()) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'User not found',
-                'data'       => [],
+                'message' => 'User not found',
+                'data' => [],
             ], 400);
         }
+        $user = auth()->user();
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'User data fetched successfully',
-            'data'       => $user,
+            'message' => 'User data fetched successfully',
+            'data' => $user,
         ]);
     }
 
@@ -122,8 +123,8 @@ class AuthController extends Controller
         JWTAuth::invalidate(JWTAuth::getToken());
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'User logged out successfully',
-            'data'       => [],
+            'message' => 'User logged out successfully',
+            'data' => [],
         ]);
     }
 
@@ -132,16 +133,16 @@ class AuthController extends Controller
         try {
             return response()->json([
                 'statusCode' => 'TXN',
-                'message'    => 'Token refreshed successfully',
-                'data'       => [
+                'message' => 'Token refreshed successfully',
+                'data' => [
                     'token' => JWTAuth::refresh(JWTAuth::getToken()),
                 ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => $e->getMessage(),
-                'data'       => [],
+                'message' => $e->getMessage(),
+                'data' => [],
             ], $e->getStatusCode());
         }
     }
@@ -154,8 +155,8 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Validation error',
-                'data'       => $validator->errors(),
+                'message' => 'Validation error',
+                'data' => $validator->errors(),
             ], 422);
         }
         try {
@@ -167,16 +168,16 @@ class AuthController extends Controller
             $resetLink = url("api/reset-password?token={$token}&email={$request->email}");
             return response()->json([
                 'statusCode' => 'TXN',
-                'message'    => 'Password reset link sent to your email',
-                'data'       => [
+                'message' => 'Password reset link sent to your email',
+                'data' => [
                     'resetLink' => $resetLink,
                 ],
             ]);
         } catch (Exception $e) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => $e->getMessage(),
-                'data'       => [],
+                'message' => $e->getMessage(),
+                'data' => [],
             ], $e->getStatusCode());
         }
     }
@@ -184,31 +185,31 @@ class AuthController extends Controller
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'token'           => 'required|string',
-            'email'           => 'required|email',
-            'password'        => 'required|min:8',
+            'token' => 'required|string',
+            'email' => 'required|email',
+            'password' => 'required|min:8',
             'confirmPassword' => 'required|same:password',
         ]);
         if ($validator->fails()) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Validation error',
-                'data'       => $validator->errors(),
+                'message' => 'Validation error',
+                'data' => $validator->errors(),
             ], 422);
         }
-        if (! $user = User::where('email', $request->email)->first()) {
+        if (!$user = User::where('email', $request->email)->first()) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'User not found',
-                'data'       => [],
+                'message' => 'User not found',
+                'data' => [],
             ], 400);
         }
         $token = $user->passwordReset;
-        if (! $token || $token->token !== $request->token) {
+        if (!$token || $token->token !== $request->token) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Invalid token',
-                'data'       => [
+                'message' => 'Invalid token',
+                'data' => [
                     'token' => ['Invalid token'],
                 ],
             ], 400);
@@ -220,14 +221,14 @@ class AuthController extends Controller
         $user->passwordReset->delete();
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'Password reset successful',
-            'data'       => [],
+            'message' => 'Password reset successful',
+            'data' => [],
         ]);
     }
 
     public function interviewQuestion()
     {
-        $input  = [5, 1, 6, 2, 2, 3, 4, 4, 5];
+        $input = [5, 1, 6, 2, 2, 3, 4, 4, 5];
         $unique = [];
         //remove duplicates
         for ($i = 0; $i < count($input); $i++) {
@@ -238,18 +239,18 @@ class AuthController extends Controller
                     break;
                 }
             }
-            if (! $isDuplicate) {
+            if (!$isDuplicate) {
                 $unique[] = $input[$i];
             }
         }
 
-        $num    = count($unique);
+        $num = count($unique);
         $uarray = [];
         for ($i = 0; $i < $num - 1; $i++) {
             for ($j = 0; $j < $num - $i - 1; $j++) {
                 if ($unique[$j] > $unique[$j + 1]) {
-                    $temp           = $unique[$j];
-                    $unique[$j]     = $unique[$j + 1];
+                    $temp = $unique[$j];
+                    $unique[$j] = $unique[$j + 1];
                     $unique[$j + 1] = $temp;
                 }
             }
@@ -261,7 +262,7 @@ class AuthController extends Controller
             for ($j = $i + 1; $j < count($unique); $j++) {
                 if ($unique[$i] < $unique[$j]) {
                     // Swap values
-                    $temp       = $unique[$i];
+                    $temp = $unique[$i];
                     $unique[$i] = $unique[$j];
                     $unique[$j] = $temp;
                 }
@@ -283,11 +284,11 @@ class AuthController extends Controller
 
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'Unique values fetched successfully',
-            'data'       => [
+            'message' => 'Unique values fetched successfully',
+            'data' => [
                 'unique' => $unique,
-                'max'    => $max,
-                'min'    => $min,
+                'max' => $max,
+                'min' => $min,
             ],
         ]);
     }
