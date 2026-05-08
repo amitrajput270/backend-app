@@ -94,9 +94,15 @@
                                         Cancel
                                     </button>
                                 @else
-                                    <button wire:click="editUser({{ $user->id }})" class="btn btn-primary btn-sm">
+                                    <button wire:loading.remove wire:target="editUser" wire:click="editUser({{ $user->id }})"
+                                        class="btn btn-primary btn-sm">
                                         Edit
+                                        <span wire:loading wire:target="editUser">
+                                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                                        </span>
                                     </button>
+
+
                                     <button wire:click="confirmSingleDelete({{ $user->id }})" class="btn btn-danger btn-sm">
                                         Delete
                                     </button>
