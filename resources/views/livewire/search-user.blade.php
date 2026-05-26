@@ -10,7 +10,7 @@
                 <input type="text" wire:model.live.debounce.500ms="search" class="form-control"
                     placeholder="Search users by name or email...">
             </div>
-            <div class="col-lg-6">
+            <div class="col-lg-6 left-0 text-lg-end mt-2 mt-lg-0">
                 <div class="btn-group" role="group">
                     <button wire:click="createUser" class="btn btn-primary btn-sm" wire:loading.attr="disabled">
                         <span wire:loading.remove wire:target="createUser">Create User</span>
@@ -46,7 +46,7 @@
             <table class="table table-striped table-bordered table-hover">
                 <thead class="table-dark">
                     <tr>
-                        <th width="50"><input type="checkbox" id="selectAll"></th>
+                        <th class="text-center" width="50"><input type="checkbox" id="selectAll"></th>
                         <th width="80">ID</th>
                         <th>Name</th>
                         <th>Email</th>
@@ -85,7 +85,7 @@
                                 @endif
                             </td>
                             <td>{{ $user->created_at?->format('M j, Y g:i a') }}</td>
-                            <td>
+                            <td class="text-center">
                                 @if ($editingUserId === $user->id)
                                     <button wire:click="updateUser" class="btn btn-success btn-sm" wire:loading.attr="disabled">
                                         Save
@@ -174,7 +174,6 @@
     // Optimized SweetAlert and UI interactions
     (function () {
         'use strict';
-
         // DOM Elements
         let selectAllCheckbox = null;
         let deleteButton = null;

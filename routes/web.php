@@ -57,31 +57,38 @@ Route::get('trait-test', [RssFeedController::class, 'traitTest']);
 
 
 
-
-
-
-
-
-
-
 Route::get('test', function () {
-    $arr = [5, 1, 6, 2, 2, 3, 4, 4, 5];
-    // $uniqueArr = [];
-    // foreach ($arr as $key => $value) {
-    //     $uniqueArr[$value] = $value;
-    // }
 
-    $uniqueArr = array_unique($arr);
-    sort($uniqueArr);
-    $max = max($uniqueArr);
-    $min = min($uniqueArr);
-    return response()->json([
-        'success' => true,
-        'message' => 'Interview question solved successfully',
-        'data' => [
-            'unique' => $uniqueArr,
-            'max' => $max,
-            'min' => $min,
-        ]
-    ]);
+    $a = "gqdbucbmfkpjeszrlxpebjrccqwluvojqszxewoqrrcvjzqwrfogxidwzqvdnqohbdjztvtnuxztfqdoenerhrpmbrhqrhtugbfzdziazeyrjndxtszkznnirdccokzevhdfaffroaiqwawvfoxhccvachcaztucsrpmswawkxoulpxheiucwppkdmllispmgbnrfvifzxvgfafndvmuofcqvyxesfzuuzhecspreqsuknxxmhbbwnobteoykcfkmslzcfilgvfadsumwxsjtjfisjvmiaujamazwacqgllduhaxvxbparpbkpqlbmigtbkuizvxvxgbrqsuaovlvlwkspagzdopudhklybhudmmvpefcllphlwklrqenviohpzhqdtrgavljseixuloilzfgyinvxsujkuqqyymvklgdwicuovyhgirkdkjsfuzrcgcqtgnqyqtyoivrslcwzfriyrnlgo";
+    $b = "zrcgcqtgnqyqtyoivrslcwzfriyrnlgoayojctgymfmdqaazmgqqglcbmsavuzsrehajutmnsfkeuwmvitcmamuhyfejkconkncoqomjchwliiajcwivupwuukkasqwzcnmdymkkapsauhuaknktwaavqgoakzkqahabknmqwmorobcayasmufmwspooayyriictcwkcynsnumqdkmshkuavoygoysozeniauwyoawwyadusascheyassqyaqncfegkdeckvqkawuvwxelgtgpqnoaopsgmmoawvaqavmqgqmaqnaayacjclwsebomahuyuxmgewiqgnqjimwnanmjitaoykgxgdogmsaaafcvqzayimsealoayrybqxwicnocsuguucmbicagoyqccrwokjqawocsydmpsdmkazwxeikiseiccamwwucjkjwvkdarioogaxiqedeaaasygskpeoizapynw";
+    if ($a === $b) {
+        echo 0;
+        return;
+    }
+    if (strlen($a) != strlen($b)) {
+        echo -1;
+        return;
+    }
+    $n = strlen($a);
+
+    $maxMatch = 0;
+
+    for ($i = 0; $i < $n; $i++) {
+
+        $suffixA = '';
+        for ($j = $i; $j < $n; $j++) {
+            $suffixA .= $a[$j];
+        }
+
+        $prefixB = '';
+        for ($j = 0; $j < $n - $i; $j++) {
+            $prefixB .= $b[$j];
+        }
+
+        if ($suffixA === $prefixB) {
+            $maxMatch = $n - $i;
+            break;
+        }
+    }
+    echo ($n - $maxMatch);
 });

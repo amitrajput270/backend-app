@@ -11,6 +11,9 @@ Route::any('upload-file', [\App\Http\Controllers\ManageLargeData::class, 'upload
 Route::any('yield-test', [\App\Http\Controllers\ManageLargeData::class, 'processWithYield']);
 
 
+Route::get('data-feed', [\App\Http\Controllers\DataFeedController::class, 'index']);
+
+
 
 Route::middleware(['auth:api'])->group(function () {
     Route::get('/user', [App\Http\Controllers\Api\AuthController::class, 'profile']);

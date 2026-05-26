@@ -14,7 +14,6 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-
     public function index()
     {
         return response()->json([
