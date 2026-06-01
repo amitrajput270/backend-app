@@ -61,7 +61,7 @@ class SearchUser extends Component
 
     public function createUser(): void
     {
-        $userCount = User::count();
+        $userCount = User::count('id');
         $remaining = self::MAX_USERS - $userCount;
 
         if ($remaining <= 0) {
