@@ -496,16 +496,19 @@ class SearchUser extends Component
 
     public function render()
     {
+        $search = trim($this->search ?? '');
         $users = User::query()
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhere('email', 'like', '%' . $this->search . '%');
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
                 });
             })
             ->orderByDesc('id')
             ->paginate(10);
 
-        return view('livewire.search-user', compact('users'));
+        return view('livewire.search-user', [
+            'users' => $users,
+        ]);
     }
 }

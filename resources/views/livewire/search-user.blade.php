@@ -170,7 +170,7 @@
     </div>
 </div>
 
-<script src="{{ asset('js/components/livewire-search-user.js') }}"> </script>
+<script src="{{ asset('js/components/user/livewire-search-user.js') }}"> </script>
 
 <style>
     /* Custom styles for better UX */
