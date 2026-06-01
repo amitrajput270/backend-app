@@ -21,9 +21,9 @@ trait AlertHelper
             'timer' => 3000,
             'timerProgressBar' => true,
             'didOpen' => '(toast) => {
-        toast.onmouseenter = Swal.stopTimer;
-        toast.onmouseleave = Swal.resumeTimer;
-    }',
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }',
         ]);
     }
 
