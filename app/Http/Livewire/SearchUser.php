@@ -442,7 +442,7 @@ class SearchUser extends Component
         $idsParam = request()->query('ids');
 
         if ($idsParam) {
-            $ids = is_array($idsParam)
+            $ids = \is_array($idsParam)
                 ? array_filter($idsParam, 'is_numeric')
                 : array_filter(explode(',', $idsParam), 'is_numeric');
 
@@ -486,13 +486,15 @@ class SearchUser extends Component
     {
         return match (true) {
             is_numeric($data) => [$data],
-            is_array($data) && isset($data['userId']) => [$data['userId']],
-            is_array($data) && isset($data['selectedUsers']) => (array) $data['selectedUsers'],
-            is_string($data) && ($decoded = json_decode($data, true)) && is_array($decoded) => $decoded,
-            is_array($data) => $data,
+            \is_array($data) && isset($data['userId']) => [$data['userId']],
+            \is_array($data) && isset($data['selectedUsers']) => (array) $data['selectedUsers'],
+            \is_string($data) && ($decoded = json_decode($data, true)) && \is_array($decoded) => $decoded,
+            \is_array($data) => $data,
             default => [],
         };
     }
+
+
 
     public function render()
     {

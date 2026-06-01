@@ -24,7 +24,7 @@
                         Delete Selected
                     </button>
 
-                    <button id="exportBtn" class="btn btn-success btn-sm">
+                    <button id="exportBtn" class="btn btn-success btn-sm" data-export-url="{{ route('users.export') }}">
                         Export CSV
                     </button>
 

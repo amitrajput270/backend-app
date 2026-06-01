@@ -161,7 +161,7 @@
             exportBtn.addEventListener('click', () => {
                 const selected = Array.from(document.querySelectorAll('.userCheckbox:checked'))
                     .map(c => c.value);
-                const base = '{{ route("users.export") }}';
+                const base = exportBtn?.dataset?.exportUrl || '/';
                 const url = selected.length > 0
                     ? `${base}?ids=${encodeURIComponent(selected.join(','))}`
                     : `${base}?search=${encodeURIComponent(document.getElementById('searchInput')?.value || '')}`;
