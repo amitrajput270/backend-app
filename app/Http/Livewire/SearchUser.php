@@ -17,7 +17,7 @@ class SearchUser extends Component
     use WithPagination, WithFileUploads, AlertHelper;
 
     private const BATCH_SIZE = 50;
-    private const MAX_USERS = 100;
+    private const MAX_USERS = 500;
 
     public string $search = '';
     public bool $selectAll = false;

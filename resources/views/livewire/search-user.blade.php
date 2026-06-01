@@ -13,11 +13,14 @@
             <div class="col-lg-6 left-0 text-lg-end mt-2 mt-lg-0">
                 <div class="btn-group" role="group">
                     <button wire:click="createUser" class="btn btn-primary btn-sm" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="createUser">Create User</span>
+                        <span wire:loading.remove wire:target="createUser">
+                            <i class="bi bi-plus-lg"></i>
+                            Create User</span>
                         <span wire:loading wire:target="createUser">Creating...</span>
                     </button>
 
                     <button class="btn btn-danger btn-sm" id="deleteSelected" disabled>
+                        <i class="bi bi-trash"></i>
                         Delete Selected
                     </button>
 
