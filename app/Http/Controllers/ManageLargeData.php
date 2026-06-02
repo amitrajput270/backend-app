@@ -1,4 +1,3 @@
--- Active: 1749118852752@@127.0.0.1@3306@backend-app
 <?php
 
 namespace App\Http\Controllers;
@@ -165,7 +164,7 @@ class ManageLargeData extends Controller
 
         $file = $request->file('file');
 
-        if (! $file || ! $file->isValid()) {
+        if (!$file || !$file->isValid()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid or missing file upload.',
@@ -174,7 +173,7 @@ class ManageLargeData extends Controller
 
         $filePath = $file->getRealPath();
 
-        if (! File::exists($filePath)) {
+        if (!File::exists($filePath)) {
             return response()->json([
                 'status' => 'error',
                 'message' => "File not found: {$filePath}",
@@ -197,7 +196,7 @@ class ManageLargeData extends Controller
             }
         }
 
-        if (! empty($chunk)) {
+        if (!empty($chunk)) {
             $this->insertChunk($chunk);
             $imported += count($chunk);
         }

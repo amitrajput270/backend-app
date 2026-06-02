@@ -4,10 +4,12 @@ namespace App\Http\Livewire;
 
 use App\Models\User;
 use App\Traits\AlertHelper;
+use Illuminate\Support\Facades\Cache;
 use Faker\Factory as Faker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -61,7 +63,12 @@ class SearchUser extends Component
 
     public function createUser(): void
     {
-        $userCount = User::count('id');
+        $userCount = Cache::remember(
+            'users_count',
+            now()->addMinutes(10),
+            fn() => User::count('id')
+        );
+
         $remaining = self::MAX_USERS - $userCount;
 
         if ($remaining <= 0) {
@@ -79,6 +86,10 @@ class SearchUser extends Component
                 User::insert($chunk);
             }
 
+            // Update the user count in cache
+            $this->manageUserCount($remaining);
+            $this->clearUserCache();
+
             $this->alert([
                 'icon' => 'success',
                 'text' => "$remaining user(s) created successfully."
@@ -95,20 +106,23 @@ class SearchUser extends Component
     {
         $faker = Faker::create('en_IN');
         $users = [];
-        $existingEmails = User::pluck('email')->flip();
+        $existingEmails = User::pluck('email')->toArray();
+        $existingEmails = array_flip($existingEmails);
+        $hashedPassword = Hash::make('12345678');
 
         for ($i = 0; $i < $count; $i++) {
             $name = $faker->name();
-            $username = strtolower(str_replace(' ', '.', $name));
+            $username = preg_replace('/[^a-z0-9\.]/', '', strtolower(preg_replace('/\s+/', '.', trim($name))));
 
+            // ensure uniqueness against existing emails
             do {
-                $email = $username . $faker->unique()->numberBetween(1000, 9999) . '@gmail.com';
+                $email = $username . $faker->numberBetween(1000, 9999) . '@gmail.com';
             } while (isset($existingEmails[$email]));
 
             $users[] = [
                 'name' => $name,
                 'email' => $email,
-                'password' => Hash::make('12345678'),
+                'password' => $hashedPassword,
                 'address' => $faker->streetAddress(),
                 'city' => $faker->city(),
                 'state' => $faker->state(),
@@ -144,7 +158,7 @@ class SearchUser extends Component
                 'name' => $this->editingName,
                 'email' => $this->editingEmail,
             ]);
-
+            $this->clearUserCache();
             $this->cancelEdit();
             $this->alert([
                 'icon' => 'success',
@@ -201,10 +215,10 @@ class SearchUser extends Component
     public function deleteUsers($selectedUsers = null): void
     {
         // Handle different input formats
-        if (is_string($selectedUsers)) {
+        if (\is_string($selectedUsers)) {
             // Try to decode JSON
             $decoded = json_decode($selectedUsers, true);
-            if (is_array($decoded)) {
+            if (\is_array($decoded)) {
                 $selectedUsers = $decoded;
             } else {
                 // Assume it's a comma-separated string
@@ -237,6 +251,9 @@ class SearchUser extends Component
             ]);
 
             if ($deletedCount > 0) {
+                // Update the user count in cache
+                $this->manageUserCount(-$deletedCount);
+                $this->clearUserCache();
                 $this->resetPage();
                 $this->dispatch('userDeleted');
             }
@@ -287,7 +304,6 @@ class SearchUser extends Component
                     $this->dispatch('importCompleted');
                 }
             }
-
         } catch (\Exception $e) {
             $this->alert([
                 'icon' => 'error',
@@ -366,14 +382,14 @@ class SearchUser extends Component
                 }
 
                 DB::commit();
-
+                $this->manageUserCount($created + $updated);
+                $this->clearUserCache();
             } catch (\Exception $e) {
                 DB::rollBack();
                 throw $e;
             }
 
             $message = $this->buildImportMessage($created, $updated, $skipped);
-
             return [
                 'created' => $created,
                 'updated' => $updated,
@@ -467,11 +483,18 @@ class SearchUser extends Component
         fputcsv($csv, ['ID', 'Name', 'Email', 'Created At']);
 
         foreach ($users as $index => $user) {
+            $createdAt = '';
+            if (isset($user->created_at) && method_exists($user->created_at, 'toDateTimeString')) {
+                $createdAt = $user->created_at->toDateTimeString();
+            } elseif (isset($user->created_at)) {
+                $createdAt = (string) $user->created_at;
+            }
+
             fputcsv($csv, [
-                $index + 1,
+                $user->id ?? ($index + 1),
                 $user->name,
                 $user->email,
-                $user->created_at,
+                $createdAt,
             ]);
         }
 
@@ -494,20 +517,42 @@ class SearchUser extends Component
         };
     }
 
+    private function clearUserCache(): void
+    {
+        Cache::tags(['users'])->flush();
+    }
+
+    private function manageUserCount(int $delta): void
+    {
+        if ($delta > 0) {
+            Cache::increment('users_count', $delta);
+        } elseif ($delta < 0) {
+            Cache::decrement('users_count', abs($delta));
+        }
+    }
 
 
     public function render()
     {
         $search = trim($this->search ?? '');
-        $users = User::query()
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
-            ->orderByDesc('id')
-            ->paginate(10);
+        $page = $this->getPage();
+        $cacheKey = "users:search:{$search}:page:{$page}";
+        $users = Cache::tags(['users'])->remember(
+            $cacheKey,
+            now()->addMinutes(5),
+            function () use ($search) {
+                return User::query()
+                    ->select('id', 'name', 'email', 'created_at')
+                    ->when($search, function ($query) use ($search) {
+                        $query->where(function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+                    })
+                    ->orderByDesc('id')
+                    ->paginate(10);
+            }
+        );
 
         return view('livewire.search-user', [
             'users' => $users,
