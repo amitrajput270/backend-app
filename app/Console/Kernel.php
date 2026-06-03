@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
             }
 
             $scheduling->cron($commandSchedule->schedule)
-                ->withoutOverlapping($commandSchedule->is_overlapping ? $commandSchedule->is_overlapping : 60)
+                ->withoutOverlapping($commandSchedule->is_overlapping ?: 60)
                 ->runInBackground()
                 ->environments(explode(',', $commandSchedule->environments))
                 ->before(function () use ($commandSchedule) {
@@ -55,7 +55,7 @@ class Kernel extends ConsoleKernel
     private function logTaskStart(string $command)
     {
         \App\Models\ScheduledTaskLog::create([
-            'command'    => $command,
+            'command' => $command,
             'started_at' => now(),
         ]);
     }
@@ -67,8 +67,8 @@ class Kernel extends ConsoleKernel
             ->first()
             ->update([
                 'completed_at' => now(),
-                'success'      => true,
-                'output'       => $output,
+                'success' => true,
+                'output' => $output,
             ]);
     }
 
@@ -79,9 +79,9 @@ class Kernel extends ConsoleKernel
             ->first()
             ->update([
                 'completed_at' => now(),
-                'success'      => false,
-                'output'       => $output,
-                'exception'    => $output,
+                'success' => false,
+                'output' => $output,
+                'exception' => $output,
             ]);
     }
 }

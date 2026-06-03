@@ -8,13 +8,13 @@ class ScheduledTaskLog extends Model
 {
     use HasFactory;
 
-    protected $table   = 'command_schedules_logs';
+    protected $table = 'command_schedules_logs';
     public $timestamps = true;
     protected $guarded = ['id'];
 
     public function __construct()
     {
-        parent::__construct(...func_get_args());
+        parent::__construct(...\func_get_args());
     }
 
 }

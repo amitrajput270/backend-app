@@ -539,19 +539,17 @@ class SearchUser extends Component
         $cacheKey = "users:search:{$search}:page:{$page}";
         $users = Cache::tags(['users'])->remember(
             $cacheKey,
-            now()->addMinutes(5),
-            function () use ($search) {
-                return User::query()
-                    ->select('id', 'name', 'email', 'created_at')
-                    ->when($search, function ($query) use ($search) {
-                        $query->where(function ($q) use ($search) {
-                            $q->where('name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%");
-                        });
-                    })
-                    ->orderByDesc('id')
-                    ->paginate(10);
-            }
+            now()->addMinutes(10),
+            fn() => User::query()
+                ->select('id', 'name', 'email', 'created_at')
+                ->when($search, function ($query) use ($search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+                })
+                ->orderByDesc('id')
+                ->paginate(10)
         );
 
         return view('livewire.search-user', [

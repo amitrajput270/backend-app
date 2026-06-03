@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Models\User;
-use GuzzleHttp\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -21,23 +20,23 @@ class TaskController extends Controller
     {
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'Tasks fetched successfully',
-            'data'       => Task::all(),
+            'message' => 'Tasks fetched successfully',
+            'data' => Task::all(),
         ]);
     }
 
     public function show($id)
     {
-        if (! $task = Task::find($id)) {
+        if (!$task = Task::find($id)) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Task not found',
+                'message' => 'Task not found',
             ], 404);
         }
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'Task fetched successfully',
-            'data'       => $task,
+            'message' => 'Task fetched successfully',
+            'data' => $task,
         ]);
     }
 
@@ -46,81 +45,81 @@ class TaskController extends Controller
         if (!auth()->user()) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Unauthenticated',
+                'message' => 'Unauthenticated',
             ], 401);
         }
         $validator = Validator::make($request->all(), [
-            'title'  => 'required|string|min:5|max:255',
+            'title' => 'required|string|min:5|max:255',
             'status' => function ($attribute, $value, $fail) {
                 $allowedStatuses = ['pending', 'in_progress', 'completed'];
-                if (! in_array($value, $allowedStatuses)) {
-                    $fail('The ' . $attribute . ' must be one of: ' . implode(', ', $allowedStatuses) . '.');
+                if (!\in_array($value, $allowedStatuses)) {
+                    $fail("The {$attribute} must be one of: " . implode(', ', $allowedStatuses) . '.');
                 }
             },
         ]);
         if ($validator->fails()) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Validation error',
-                'data'       => $validator->errors(),
+                'message' => 'Validation error',
+                'data' => $validator->errors(),
             ], 422);
         }
 
         $task = Task::create([
-            'title'   => $request->get('title'),
+            'title' => $request->input('title'),
             'user_id' => auth()->user()->id,
-            'status'  => $request->get('status'),
+            'status' => $request->input('status'),
         ]);
 
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'Task created successfully',
-            'data'       => $task,
+            'message' => 'Task created successfully',
+            'data' => $task,
         ]);
     }
 
     public function update(Request $request, $id)
     {
-        if (! $task = Task::find($id)) {
+        if (!$task = Task::find($id)) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Task not found',
+                'message' => 'Task not found',
             ], 404);
         }
         $validator = Validator::make($request->all(), [
-            'title'  => 'required|string|min:5|max:255',
+            'title' => 'required|string|min:5|max:255',
             'status' => 'required|in:pending,in_progress,completed',
         ]);
         if ($validator->fails()) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Validation error',
-                'data'       => $validator->errors(),
+                'message' => 'Validation error',
+                'data' => $validator->errors(),
             ], 422);
         }
         $task->update([
-            'title'  => $request->get('title'),
-            'status' => $request->get('status'),
+            'title' => $request->input('title'),
+            'status' => $request->input('status'),
         ]);
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'Task updated successfully',
-            'data'       => $task,
+            'message' => 'Task updated successfully',
+            'data' => $task,
         ]);
     }
 
     public function destroy($id)
     {
-        if (! $task = Task::find($id)) {
+        if (!$task = Task::find($id)) {
             return response()->json([
                 'statusCode' => 'ERR',
-                'message'    => 'Task not found',
+                'message' => 'Task not found',
             ], 404);
         }
         $task->delete();
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'Task deleted successfully',
+            'message' => 'Task deleted successfully',
         ]);
     }
 
@@ -129,36 +128,25 @@ class TaskController extends Controller
     {
         $usersWithPendingTasks = User::whereHas('tasks', function ($query) {
             $query->where('status', 'pending');
-        })->withCount(['tasks as pendingTaskCount' => function ($query) {
-            $query->where('status', 'pending');
-        }])->get();
+        })
+            ->withCount([
+                'tasks as pendingTaskCount' => function ($query) {
+                    $query->where('status', 'pending');
+                }
+            ])
+            ->input();
 
         $output = [];
         foreach ($usersWithPendingTasks as $user) {
             $output[] = [
-                'name'             => $user->name,
+                'name' => $user->name,
                 'pendingTaskCount' => $user->pendingTaskCount,
             ];
         }
         return response()->json([
             'statusCode' => 'TXN',
-            'message'    => 'User tasks fetched successfully',
-            'data'       => $output,
-        ]);
-
-        $userTask                 = User::with('tasks')->get();
-        $userTaskWithpendingCount = [];
-        $userTask->map(function ($user) use (&$userTaskWithpendingCount) {
-            $userTaskWithpendingCount[] = [
-                'user'         => $user,
-                'pendingCount' => $user->tasks->where('status', 'pending')->count(),
-            ];
-        });
-
-        return response()->json([
-            'statusCode' => 'TXN',
-            'message'    => 'User tasks fetched successfully',
-            'data'       => $userTaskWithpendingCount,
+            'message' => 'User tasks fetched successfully',
+            'data' => $output,
         ]);
     }
 }

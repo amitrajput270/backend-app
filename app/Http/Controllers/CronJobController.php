@@ -16,47 +16,47 @@ class CronJobController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cron jobs retrieved successfully.',
-            'data'    => $commandSchedules,
+            'data' => $commandSchedules,
         ]);
     }
 
     public function store(Request $request)
     {
-        $request = array_merge([
-            'is_active'      => 1,
+        $request = new Request([
+            'is_active' => 1,
             'is_overlapping' => 1,
-            'type'           => 'LARAVEL_COMMAND',
-            'environments'   => ['local', 'staging', 'production'],
-        ], $request->all());
-        $request = new Request($request);
+            'type' => 'LARAVEL_COMMAND',
+            'environments' => ['local', 'staging', 'production'],
+            ...$request->all(),
+        ]);
 
         $validatorResponse = \Validator::make($request->all(), [
-            'type'            => 'required|in:LARAVEL_COMMAND,SHELL_COMMAND',
-            'name'            => 'required|string|max:255',
-            'command'         => 'required|string',
-            'schedule'        => [
+            'type' => 'required|in:LARAVEL_COMMAND,SHELL_COMMAND',
+            'name' => 'required|string|max:255',
+            'command' => 'required|string',
+            'schedule' => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    if (! CronExpression::isValidExpression($value)) {
-                        $fail('The ' . $attribute . ' is not a valid cron expression.');
+                    if (!CronExpression::isValidExpression($value)) {
+                        $fail("The {$attribute} is not a valid cron expression.");
                     }
                 },
             ],
-            'isActive'        => 'boolean',
-            'isOverlapping'   => 'boolean',
-            'pingUrlBefore'   => 'nullable|url',
-            'pingUrlAfter'    => 'nullable|url',
-            'monitorEmails'   => 'nullable|array',
+            'isActive' => 'boolean',
+            'isOverlapping' => 'boolean',
+            'pingUrlBefore' => 'nullable|url',
+            'pingUrlAfter' => 'nullable|url',
+            'monitorEmails' => 'nullable|array',
             'monitorEmails.*' => 'email',
-            'environments'    => 'nullable|array',
-            'environments.*'  => 'string|in:local,staging,production',
-            'description'     => 'nullable|string|max:255',
+            'environments' => 'nullable|array',
+            'environments.*' => 'string|in:local,staging,production',
+            'description' => 'nullable|string|max:255',
         ]);
         if ($validatorResponse->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed.',
-                'errors'  => $validatorResponse->errors(),
+                'errors' => $validatorResponse->errors(),
             ], 422);
         }
         $validated = $validatorResponse->validated();
@@ -64,20 +64,20 @@ class CronJobController extends Controller
         $commandSchedule = CommandSchedule::updateOrCreate(
             ['command' => $validated['command']],
             [
-                'name'            => $validated['name'],
-                'command'         => $validated['command'],
-                'schedule'        => $validated['schedule'],
-                'is_active'       => $validated['isActive'],
-                'is_overlapping'  => $validated['isOverlapping'],
+                'name' => $validated['name'],
+                'command' => $validated['command'],
+                'schedule' => $validated['schedule'],
+                'is_active' => $validated['isActive'],
+                'is_overlapping' => $validated['isOverlapping'],
                 'ping_url_before' => $validated['pingUrlBefore'] ?? null,
-                'ping_url_after'  => $validated['pingUrlAfter'] ?? null,
-                'monitor_emails'  => implode(',', $validated['monitorEmails'] ?? null),
-                'environments'    => implode(',', $validated['environments'] ?? null),
-                'description'     => $validated['description'] ?? null,
+                'ping_url_after' => $validated['pingUrlAfter'] ?? null,
+                'monitor_emails' => implode(',', $validated['monitorEmails'] ?? null),
+                'environments' => implode(',', $validated['environments'] ?? null),
+                'description' => $validated['description'] ?? null,
             ]
         );
 
-        if (! $commandSchedule) {
+        if (!$commandSchedule) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create cron job.',
@@ -87,22 +87,22 @@ class CronJobController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cron job created successfully.',
-            'data'    => $commandSchedule,
+            'data' => $commandSchedule,
         ]);
     }
 
     public function createUsers()
     {
         $isUserCount = request()->input('isUserCount', false);
-        $userCount   = User::count();
-        $remaining   = 100 - $userCount;
+        $userCount = User::count();
+        $remaining = 100 - $userCount;
 
 
         if ($isUserCount) {
             return response()->json([
                 'success' => true,
-                'message' => 'User count is ' . $userCount,
-                'data'    => [
+                'message' => "User count is $userCount and remaining to reach 100 is $remaining.",
+                'data' => [
                     'userCount' => $userCount,
                     'remaining' => $remaining,
                 ],
@@ -114,15 +114,15 @@ class CronJobController extends Controller
             $users = [];
             for ($i = 0; $i < $remaining; $i++) {
                 $users[] = [
-                    'name'       => $faker->name,
-                    'email'      => $faker->unique()->safeEmail,
-                    'password'   => bcrypt('password'),
+                    'name' => $faker->name,
+                    'email' => $faker->unique()->safeEmail,
+                    'password' => bcrypt('password'),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
             }
 
-            $isInserted =  User::insert($users);
+            $isInserted = User::insert($users);
 
             return response()->json([
                 'success' => true,
@@ -133,7 +133,7 @@ class CronJobController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'User count is already ' . $userCount,
+            'message' => "User count is already $userCount",
         ], 200);
     }
 }
