@@ -243,7 +243,7 @@ class AuthController extends Controller
             }
         }
 
-        $num = count($unique);
+        $num = \count($unique);
         $uarray = [];
         for ($i = 0; $i < $num - 1; $i++) {
             for ($j = 0; $j < $num - $i - 1; $j++) {
@@ -280,6 +280,28 @@ class AuthController extends Controller
                 $min = $unique[$i];
             }
         }
+
+        // $arr = [1, 3, 2, 1, 6, 4, 5];
+        // $uniqueArr = [];
+        // foreach ($arr as $key => $value) {
+        //     $uniqueArr[$value] = $value;
+        // }
+        // $funiqueArr = [];
+        // foreach ($uniqueArr as $value) {
+        //     $funiqueArr[] = $value;
+        // }
+
+        // for ($i = 0; $i < count($funiqueArr) - 1; $i++) {
+        //     for ($j = 0; $j - $i - 1; $j++) {
+        //         if ($funiqueArr[$j] > $funiqueArr[$j + 1]) {
+        //             $temp = $funiqueArr[$j];
+        //             $funiqueArr[$j] = $funiqueArr[$j + 1];
+        //             $funiqueArr[$j + 1] = $temp;
+        //         }
+        //     }
+        // }
+
+        // dd($funiqueArr);
 
         return response()->json([
             'statusCode' => 'TXN',

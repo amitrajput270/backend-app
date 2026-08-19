@@ -24,6 +24,7 @@
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
         "fruitcake/laravel-debugbar": "^4.2",
+        "laravel/doctor": "^0.1.0",
         "mockery/mockery": "^1.5",
         "nunomaduro/collision": "^8.1",
         "phpunit/phpunit": "^11.0",

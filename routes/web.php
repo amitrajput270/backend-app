@@ -53,42 +53,17 @@ Route::get('trait-test', [RssFeedController::class, 'traitTest']);
 
 
 
-
-
-
-
 Route::get('test', function () {
 
-    $a = "gqdbucbmfkpjeszrlxpebjrccqwluvojqszxewoqrrcvjzqwrfogxidwzqvdnqohbdjztvtnuxztfqdoenerhrpmbrhqrhtugbfzdziazeyrjndxtszkznnirdccokzevhdfaffroaiqwawvfoxhccvachcaztucsrpmswawkxoulpxheiucwppkdmllispmgbnrfvifzxvgfafndvmuofcqvyxesfzuuzhecspreqsuknxxmhbbwnobteoykcfkmslzcfilgvfadsumwxsjtjfisjvmiaujamazwacqgllduhaxvxbparpbkpqlbmigtbkuizvxvxgbrqsuaovlvlwkspagzdopudhklybhudmmvpefcllphlwklrqenviohpzhqdtrgavljseixuloilzfgyinvxsujkuqqyymvklgdwicuovyhgirkdkjsfuzrcgcqtgnqyqtyoivrslcwzfriyrnlgo";
-    $b = "zrcgcqtgnqyqtyoivrslcwzfriyrnlgoayojctgymfmdqaazmgqqglcbmsavuzsrehajutmnsfkeuwmvitcmamuhyfejkconkncoqomjchwliiajcwivupwuukkasqwzcnmdymkkapsauhuaknktwaavqgoakzkqahabknmqwmorobcayasmufmwspooayyriictcwkcynsnumqdkmshkuavoygoysozeniauwyoawwyadusascheyassqyaqncfegkdeckvqkawuvwxelgtgpqnoaopsgmmoawvaqavmqgqmaqnaayacjclwsebomahuyuxmgewiqgnqjimwnanmjitaoykgxgdogmsaaafcvqzayimsealoayrybqxwicnocsuguucmbicagoyqccrwokjqawocsydmpsdmkazwxeikiseiccamwwucjkjwvkdarioogaxiqedeaaasygskpeoizapynw";
-    if ($a === $b) {
-        echo 0;
-        return;
-    }
-    if (strlen($a) != strlen($b)) {
-        echo -1;
-        return;
-    }
-    $n = strlen($a);
-
-    $maxMatch = 0;
-
-    for ($i = 0; $i < $n; $i++) {
-
-        $suffixA = '';
-        for ($j = $i; $j < $n; $j++) {
-            $suffixA .= $a[$j];
+    function test($params = [], $target = 0)
+    {
+        if ($target == 0) {
+            return $params;
         }
 
-        $prefixB = '';
-        for ($j = 0; $j < $n - $i; $j++) {
-            $prefixB .= $b[$j];
-        }
+        $val = [2, 7, 11, 15];
 
-        if ($suffixA === $prefixB) {
-            $maxMatch = $n - $i;
-            break;
-        }
     }
-    echo ($n - $maxMatch);
+
+
 });
