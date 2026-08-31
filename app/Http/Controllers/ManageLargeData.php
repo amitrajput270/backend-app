@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\FeesExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use League\Csv\Reader;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -29,7 +27,6 @@ class ManageLargeData extends Controller
             }
 
             $filePath = $file->getRealPath();
-            dd($filePath);
 
             if (!File::exists($filePath)) {
                 return response()->json([
@@ -76,6 +73,7 @@ class ManageLargeData extends Controller
 
         // Return as JSON stream
         return response()->stream(function () use ($processor) {
+            // dd($processor);
             foreach ($processor() as $data) {
                 dd($data);
                 echo json_encode($data) . "\n";

@@ -8,6 +8,19 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('users'));
 
+// // Original array
+// let arr = [1, 2, 3, 4, 2, 3, 5, 7, 9, 6];
+
+// let uniqueSorted = [...new Set(arr)].sort(function (a, b) {
+//     a - b
+// });
+
+// console.log(uniqueSorted);
+
+
+
+
+
 Route::any('import-large-file', [\App\Http\Controllers\ManageLargeData::class, 'uploadLargeFile']);
 Route::any('yield-test', [\App\Http\Controllers\ManageLargeData::class, 'processWithYield']);
 // Route::get('test', \App\Http\Livewire\Counter::class, 'test');
@@ -51,19 +64,7 @@ Route::get('rss', [RssFeedController::class, 'index']);
 Route::get('trait-test', [RssFeedController::class, 'traitTest']);
 
 
-
-
 Route::get('test', function () {
 
-    function test($params = [], $target = 0)
-    {
-        if ($target == 0) {
-            return $params;
-        }
-
-        $val = [2, 7, 11, 15];
-
-    }
-
-
+    echo "This is a test route";
 });
